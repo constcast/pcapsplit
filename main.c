@@ -1,3 +1,5 @@
+#include "packet.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -14,12 +16,11 @@ void usage(char* progname)
 
 int dump_to_file(pcap_t* readDev, pcap_dumper_t* dumper, size_t dump_size)
 {
-	const unsigned char* pcap_data;
-	struct pcap_pkthdr packetHeader;
+	struct packet p;
 	size_t s = 0;
-	while (NULL != (pcap_data = pcap_next(readDev, &packetHeader))) {
-		pcap_dump((unsigned char*)dumper, &packetHeader, pcap_data);
-		s += packetHeader.len;
+	while (NULL != (p.data = pcap_next(readDev, &p.header))) {
+		pcap_dump((unsigned char*)dumper, &p.header, p.data);
+		s += p.header.len;
 		if (s >= dump_size) {
 			// dump file reach size limit
 			return 0;
