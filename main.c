@@ -1,13 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <libgen.h>
 
 #include <pcap.h>
 
 #define MAX_FILENAME 65535
 
-void usage(const char* progname)
+void usage(char* progname)
 {
-	fprintf(stderr, "Usage: %s <pcapfile> slicesize(in MB)\n");
+	fprintf(stderr, "Usage: %s <pcapfile> slicesize(in MB)\n", basename(progname));
 }
 
 int dump_to_file(pcap_t* readDev, pcap_dumper_t* dumper, size_t dump_size)
