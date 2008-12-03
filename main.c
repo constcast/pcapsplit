@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 		 ret = dump_to_file(pfile, dumper, slice_size);
 		pcap_dump_flush(dumper);
 		pcap_dump_close(dumper);
-		filenumbr++;
+		filenumber++;
 	} while (0 == ret);
 
 	return 0;
