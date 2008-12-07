@@ -30,7 +30,7 @@ int dumpers_finish(struct dumpers* d)
 	size_t i;
 	for (i = 0; i != d->count; ++i) {
 		if (d->modules[i].dfinish) {
-			d->modules[i].dfinish();
+			d->modules[i].dfinish(&d->modules[i]);
 		}
 	}
 	free(d->modules);

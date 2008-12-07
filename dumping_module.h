@@ -20,14 +20,17 @@
 
 #include <sys/types.h>
 
-typedef int (dumper_init)(void* data);
-typedef int (dumper_finish)();
-typedef int (dumper_func)(struct packet* p);
+struct dumping_module;
+
+typedef int (dumper_init)(struct dumping_module* m, void* data);
+typedef int (dumper_finish)(struct dumping_module* m);
+typedef int (dumper_func)(struct dumping_module* m, struct packet* p);
 
 struct dumping_module {
 	dumper_init* dinit;
 	dumper_finish* dfinish;
 	dumper_func* dfunc;
+	void* module_data;
 };
 
 struct dumpers {
