@@ -39,6 +39,9 @@ int dumpers_finish(struct dumpers* d)
 
 int dumpers_add(struct dumpers* d, struct dumping_module* dm)
 {
-
+	size_t n = ++d->count;
+	d->modules = (struct dumping_module*)realloc(d->modules,
+		n * sizeof(struct dumping_module));
+	memcpy(&d->modules[n-1], &dm, sizeof(struct dumping_module));
 	return 0;
 }
