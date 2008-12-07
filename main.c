@@ -26,7 +26,8 @@
 
 void usage(char* progname)
 {
-	fprintf(stderr, "Usage: %s <pcapfile> slicesize(in MB)\n", basename(progname));
+	fprintf(stderr, "\n%s version %s\n\n", basename(progname), VERSION);
+	fprintf(stderr, "Usage: %s <pcapfile> slicesize(in MB)\n\n", basename(progname));
 }
 
 int dump_to_file(pcap_t* readDev, pcap_dumper_t* dumper, size_t dump_size)
