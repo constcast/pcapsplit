@@ -3,7 +3,7 @@ capable of splitting pcap files into several smaller pieces.
 
 Use 
 
-$ ./autoreconf -i
+$ autoreconf -i
 $ ./configure
 $ make
 
