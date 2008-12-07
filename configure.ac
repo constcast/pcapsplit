@@ -17,7 +17,7 @@ AC_INIT
 AC_PREREQ(2.59)
 AM_INIT_AUTOMAKE(pcapsplit, 0.0a)
 
-AC_CHECK_HEADERS(stdio.h stdlib.h unistd.h libgen.h)
+AC_CHECK_HEADERS(stdio.h stdlib.h unistd.h libgen.h sys/types.h)
 
 # check for libpcap
 AC_CHECK_HEADER([pcap.h],
