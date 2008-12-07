@@ -31,7 +31,7 @@ struct dumping_module {
 };
 
 struct dumpers {
-	struct dumping_module* module;
+	struct dumping_module* modules;
 	size_t count;
 };
 

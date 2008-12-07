@@ -15,15 +15,25 @@
 
 #include "dumping_module.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 int dumpers_init(struct dumpers* d)
 {
-
+	d->modules = NULL;
+	d->count = 0;
 	return 0;
 }
 
 int dumpers_finish(struct dumpers* d)
 {
-
+	size_t i;
+	for (i = 0; i != d->count; ++i) {
+		if (d->modules[i].dfinish) {
+			d->modules[i].dfinish();
+		}
+	}
+	free(d->modules);
 	return 0;
 }
 
