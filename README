@@ -1,0 +1,11 @@
+This is a development snapshot of pcapsplit. At this moment pcapsplit is only
+capable of splitting pcap files into several smaller pieces. 
+
+Use 
+
+$ ./autoreconf -i
+$ ./configure
+$ make
+
+in order to compile pcapsplit. You need the development version of libpcap
+installed on you system.
