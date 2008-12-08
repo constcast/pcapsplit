@@ -59,6 +59,9 @@ int size_dumper_init(struct dumping_module* m, void* data)
 
 int size_dumper_finish(struct dumping_module* m)
 {
+	struct size_dumper_data* d = (struct size_dumper_data*)m->module_data;
+	pcap_dump_flush(d->dumper);
+	pcap_dump_close(d->dumper);
 	free(m->module_data);
 	m->module_data = NULL;
 	return 0;
