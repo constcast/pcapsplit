@@ -20,7 +20,6 @@
 
 int dumpers_init(struct dumpers* d)
 {
-	d->modules = NULL;
 	d->count = 0;
 	return 0;
 }
@@ -29,19 +28,16 @@ int dumpers_finish(struct dumpers* d)
 {
 	size_t i;
 	for (i = 0; i != d->count; ++i) {
-		if (d->modules[i].dfinish) {
-			d->modules[i].dfinish(&d->modules[i]);
+		if (d->modules[i]->dfinish) {
+			d->modules[i]->dfinish(d->modules[i]);
 		}
 	}
-	free(d->modules);
 	return 0;
 }
 
 int dumpers_add(struct dumpers* d, struct dumping_module* dm)
 {
-	size_t n = ++d->count;
-	d->modules = (struct dumping_module*)realloc(d->modules,
-		n * sizeof(struct dumping_module));
-	memcpy(&d->modules[n-1], &dm, sizeof(struct dumping_module));
+	d->modules[d->count] = dm;
+	++d->count;
 	return 0;
 }
