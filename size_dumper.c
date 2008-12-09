@@ -20,6 +20,13 @@
 
 #define MAX_FILENAME 65535
 
+struct dumping_module size_dumper = {
+	size_dumper_init,
+	size_dumper_finish,
+	size_dumper_run
+};
+
+
 struct size_dumper_data {
 	char base_filename[MAX_FILENAME];
 	char dump_filename[MAX_FILENAME];
