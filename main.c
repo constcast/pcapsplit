@@ -14,7 +14,8 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "packet.h"
-#include "dumping_module.h"
+#include "dumping_list.h"
+#include "size_dumper.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,31 +32,21 @@ void usage(char* progname)
 	fprintf(stderr, "Usage: %s <pcapfile> slicesize(in MB)\n\n", basename(progname));
 }
 
-int dump_to_file(pcap_t* readDev, pcap_dumper_t* dumper, size_t dump_size)
-{
-	struct packet p;
-	size_t s = 0;
-	while (NULL != (p.data = pcap_next(readDev, &p.header))) {
-		pcap_dump((unsigned char*)dumper, &p.header, p.data);
-		s += p.header.len;
-		if (s >= dump_size) {
-			// dump file reach size limit
-			return 0;
-		}
-	}
-	// end of file
-	return -1;
-}
-
 int main(int argc, char** argv)
 {
 	char errorBuffer[PCAP_ERRBUF_SIZE];
-	char outfile[MAX_FILENAME];
-	unsigned filenumber = 0;
 	if (argc != 3) {
 		usage(argv[0]);
 		return -1;
 	}
+
+	struct dumpers dumps;
+	dumpers_init(&dumps);
+
+	//create_all_dumpers(&dumps);
+
+	size_dumper.dinit(&size_dumper, argv[1]);
+	dumpers_add(&dumps, &size_dumper);
 
 	pcap_t* pfile = pcap_open_offline(argv[1], errorBuffer); 
 	if (!pfile) {
@@ -63,21 +54,15 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	const unsigned slice_size = atoi(argv[2]) * 1000000;
-	int ret = 0;
-	do {
-		sprintf(outfile, "%s.%i", argv[1], filenumber);
-		pcap_t* out = pcap_open_dead(pcap_datalink(pfile), 65535);
-		pcap_dumper_t* dumper = pcap_dump_open(out, outfile);
-		if (!dumper) {
-			fprintf(stderr, "Could not open pcapfile %s: %s", outfile, errorBuffer);
-			return -1;
+	struct packet p;
+	int i;
+	while (NULL != (p.data = pcap_next(pfile, &p.header))) {
+		for (i = 0; i != dumps.count; ++i) {
+			dumps.modules[i].dfunc(&dumps.modules[i], &p);
 		}
-		 ret = dump_to_file(pfile, dumper, slice_size);
-		pcap_dump_flush(dumper);
-		pcap_dump_close(dumper);
-		filenumber++;
-	} while (0 == ret);
+	}
+
+	dumpers_finish(&dumps);
 
 	return 0;
 }
