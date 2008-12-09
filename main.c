@@ -15,6 +15,7 @@
 
 #include "packet.h"
 #include "dumping_list.h"
+#include "dumping_module.h"
 #include "size_dumper.h"
 
 #include <stdio.h>
@@ -58,7 +59,7 @@ int main(int argc, char** argv)
 	int i;
 	while (NULL != (p.data = pcap_next(pfile, &p.header))) {
 		for (i = 0; i != dumps.count; ++i) {
-			dumps.modules[i].dfunc(&dumps.modules[i], &p);
+			dumps.modules[i]->dfunc(dumps.modules[i], &p);
 		}
 	}
 
