@@ -1,4 +1,6 @@
 /*
+ Changed by Lothar Braun <lothar@lobraun.de> @ 2008
+
  Based upon libiniparser, by Nicolas Devillard
  Hacked into 1 file (m-iniparser) by Freek/2005
  Original terms following:
@@ -32,9 +34,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include "iniparser.h"
-#include "msg.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,38 +73,6 @@ static char * strlwc(char * s)
     l[ASCIILINESZ]=(char)0;
     return l ;
 }
-
-
-
-/*-------------------------------------------------------------------------*/
-/**
-  @brief	Convert a string to uppercase.
-  @param	s	String to convert.
-  @return	ptr to statically allocated string.
-
-  This function returns a pointer to a statically allocated string
-  containing an uppercased version of the input string. Do not free
-  or modify the returned string! Since the returned string is statically
-  allocated, it will be modified at each function call (not re-entrant).
- */
-/*--------------------------------------------------------------------------*/
-
-static char * strupc(char * s)
-{
-    static char l[ASCIILINESZ+1];
-    int i ;
-
-    if (s==NULL) return NULL ;
-    memset(l, 0, ASCIILINESZ+1);
-    i=0 ;
-    while (s[i] && i<ASCIILINESZ) {
-        l[i] = (char)toupper((int)s[i]);
-        i++ ;
-    }
-    l[ASCIILINESZ]=(char)0;
-    return l ;
-}
-
 
 
 /*-------------------------------------------------------------------------*/
@@ -157,44 +127,6 @@ static char * strcrop(char * s)
 	}
 	*last = (char)0;
     return l ;
-}
-
-
-
-/*-------------------------------------------------------------------------*/
-/**
-  @brief	Remove blanks at the beginning and the end of a string.
-  @param	s	String to parse.
-  @return	ptr to statically allocated string.
-
-  This function returns a pointer to a statically allocated string,
-  which is identical to the input string, except that all blank
-  characters at the end and the beg. of the string have been removed.
-  Do not free or modify the returned string! Since the returned string
-  is statically allocated, it will be modified at each function call
-  (not re-entrant).
- */
-/*--------------------------------------------------------------------------*/
-static char * strstrip(char * s)
-{
-    static char l[ASCIILINESZ+1];
-    char * last ;
-
-    if (s==NULL) return NULL ;
-
-	while (isspace((int)*s) && *s) s++;
-
-	memset(l, 0, ASCIILINESZ+1);
-	strcpy(l, s);
-	last = l + strlen(l);
-	while (last > l) {
-		if (!isspace((int)*(last-1)))
-			break ;
-		last -- ;
-	}
-	*last = (char)0;
-
-	return (char*)l ;
 }
 
 
@@ -713,7 +645,7 @@ char * iniparser_getvalue(dictionary *d, char *section, char *key)
 	snprintf(tmp, ASCIILINESZ, "%s:%s", section, key);
 
         if(!(ret=iniparser_getstring(d, tmp, NULL))) {
-                msg(MSG_ERROR, "iniparser: value is NULL, maybe looking for wrong key? Section: %s, key: %s", section, key);
+                fprintf(stderr, "iniparser: value is NULL, maybe looking for wrong key? Section: %s, key: %s", section, key);
         }
 
         return ret;
