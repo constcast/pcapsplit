@@ -1,4 +1,6 @@
 /*
+ Changed by Lothar Braun <lothar@lobraun.de> @ 2008
+
  Based upon libiniparser, by Nicolas Devillard
  Hacked into 1 file (m-iniparser) by Freek/2005
  Original terms following:
@@ -31,10 +33,6 @@
 #ifndef _INIPARSER_H_
 #define _INIPARSER_H_
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <ctype.h>
 
 #ifdef __cplusplus
 extern "C" {
