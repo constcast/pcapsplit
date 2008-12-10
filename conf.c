@@ -15,6 +15,7 @@
 
 #include "conf.h"
 #include "iniparser.h"
+#include "dumping_module.h"
 
 #include <stdlib.h>
 
@@ -36,13 +37,22 @@ void config_free(struct config* config)
 	free(config);
 }
 
-const char** config_get_module_names(struct config* config)
+size_t config_get_module_names(struct config* config, const char** module_names)
 {
-	return NULL;
+	size_t count = iniparser_getnsec(config->d);
+	int i;
+	if (count > MAX_MODULES) {
+		fprintf(stderr, "Config file does contain more modules than allowed\n");
+		return 0;
+	}
+	for (i = 0; i != count; ++i) {
+		module_names[i] = iniparser_getsecname(config->d, i);
+	}
+	return count;
 }
 
-const char* config_get_option(struct config* config, const char* module_name)
+const char* config_get_option(struct config* config, const char* module_name, const char* option)
 {
-	return NULL;
+	return iniparser_getvalue(config->d, module_name, option);
 }
 
