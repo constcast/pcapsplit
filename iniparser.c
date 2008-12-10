@@ -58,7 +58,7 @@ extern "C" {
  */
 /*--------------------------------------------------------------------------*/
 
-static char * strlwc(char * s)
+static const char * strlwc(const char * s)
 {
     static char l[ASCIILINESZ+1];
     int i ;
@@ -174,7 +174,7 @@ static void * mem_double(void * ptr, int size)
  */
 /*--------------------------------------------------------------------------*/
 
-static unsigned dictionary_hash(char * key)
+static unsigned dictionary_hash(const char * key)
 {
 	int			len ;
 	unsigned	hash ;
@@ -267,7 +267,7 @@ static void dictionary_del(dictionary * d)
   dictionary object, you should not try to free it or modify it.
  */
 /*--------------------------------------------------------------------------*/
-static char * dictionary_get(dictionary * d, char * key, char * def)
+static const char * dictionary_get(dictionary * d, const char * key, const char * def)
 {
 	unsigned	hash ;
 	int			i ;
@@ -313,7 +313,7 @@ static char * dictionary_get(dictionary * d, char * key, char * def)
  */
 /*--------------------------------------------------------------------------*/
 
-static void dictionary_set(dictionary * d, char * key, char * val)
+static void dictionary_set(dictionary * d, const char * key, const char * val)
 {
 	int			i ;
 	unsigned	hash ;
@@ -378,7 +378,7 @@ static void dictionary_set(dictionary * d, char * key, char * val)
   key cannot be found.
  */
 /*--------------------------------------------------------------------------*/
-static void dictionary_unset(dictionary * d, char * key)
+static void dictionary_unset(dictionary * d, const char * key)
 {
 	unsigned	hash ;
 	int			i ;
@@ -523,7 +523,7 @@ int iniparser_getnsec(dictionary * d)
  */
 /*--------------------------------------------------------------------------*/
 
-char * iniparser_getsecname(dictionary * d, int n)
+const char * iniparser_getsecname(dictionary * d, int n)
 {
     int i ;
     int foundsec ;
@@ -582,7 +582,7 @@ void iniparser_dump_ini(dictionary * d, FILE * f)
     int     i, j ;
     char    keym[ASCIILINESZ+1];
     int     nsec ;
-    char *  secname ;
+    const char *  secname ;
     int     seclen ;
 
     if (d==NULL || f==NULL) return ;
@@ -637,10 +637,10 @@ void iniparser_dump_ini(dictionary * d, FILE * f)
   iniparser_getstring() instead.
  */
 
-char * iniparser_getvalue(dictionary *d, char *section, char *key)
+const char * iniparser_getvalue(dictionary *d, const char *section, const char *key)
 {
         char tmp[ASCIILINESZ];
-        char *ret;
+        const char *ret;
 
 	snprintf(tmp, ASCIILINESZ, "%s:%s", section, key);
 
@@ -671,7 +671,7 @@ char * iniparser_getvalue(dictionary *d, char *section, char *key)
   iniparser_getstring() instead.
  */
 /*--------------------------------------------------------------------------*/
-char * iniparser_getstr(dictionary * d, char * key)
+const char * iniparser_getstr(dictionary * d, const char * key)
 {
     return iniparser_getstring(d, key, NULL);
 }
@@ -692,10 +692,10 @@ char * iniparser_getstr(dictionary * d, char * key)
   the dictionary, do not free or modify it.
  */
 /*--------------------------------------------------------------------------*/
-char * iniparser_getstring(dictionary * d, char * key, char * def)
+const char * iniparser_getstring(dictionary * d, const char * key, const char * def)
 {
     char * lc_key ;
-    char * sval ;
+    const char * sval ;
 
     if (d==NULL || key==NULL)
         return def ;
@@ -721,9 +721,9 @@ char * iniparser_getstring(dictionary * d, char * key, char * def)
   the notfound value is returned.
  */
 /*--------------------------------------------------------------------------*/
-int iniparser_getint(dictionary * d, char * key, int notfound)
+int iniparser_getint(dictionary * d, const char * key, int notfound)
 {
-    char    *   str ;
+    const char    *   str ;
 
     str = iniparser_getstring(d, key, INI_INVALID_KEY);
     if (str==INI_INVALID_KEY) return notfound ;
@@ -744,9 +744,9 @@ int iniparser_getint(dictionary * d, char * key, int notfound)
   the notfound value is returned.
  */
 /*--------------------------------------------------------------------------*/
-double iniparser_getdouble(dictionary * d, char * key, double notfound)
+double iniparser_getdouble(dictionary * d, const char * key, double notfound)
 {
-    char    *   str ;
+    const char*   str ;
 
     str = iniparser_getstring(d, key, INI_INVALID_KEY);
     if (str==INI_INVALID_KEY) return notfound ;
@@ -787,9 +787,9 @@ double iniparser_getdouble(dictionary * d, char * key, double notfound)
   necessarily have to be 0 or 1.
  */
 /*--------------------------------------------------------------------------*/
-int iniparser_getboolean(dictionary * d, char * key, int notfound)
+int iniparser_getboolean(dictionary * d, const char * key, int notfound)
 {
-    char    *   c ;
+    const char*   c ;
     int         ret ;
 
     c = iniparser_getstring(d, key, INI_INVALID_KEY);
@@ -820,7 +820,7 @@ int iniparser_getboolean(dictionary * d, char * key, int notfound)
 
 int iniparser_find_entry(
     dictionary  *   ini,
-    char        *   entry
+    const char  *   entry
 )
 {
     int found=0 ;
@@ -846,7 +846,7 @@ int iniparser_find_entry(
  */
 /*--------------------------------------------------------------------------*/
 
-int iniparser_setstr(dictionary * ini, char * entry, char * val)
+int iniparser_setstr(dictionary * ini, const char * entry, const char * val)
 {
     dictionary_set(ini, strlwc(entry), val);
     return 0 ;
@@ -862,7 +862,7 @@ int iniparser_setstr(dictionary * ini, char * entry, char * val)
   If the given entry can be found, it is deleted from the dictionary.
  */
 /*--------------------------------------------------------------------------*/
-void iniparser_unset(dictionary * ini, char * entry)
+void iniparser_unset(dictionary * ini, const char * entry)
 {
     dictionary_unset(ini, strlwc(entry));
 }
@@ -883,7 +883,7 @@ void iniparser_unset(dictionary * ini, char * entry)
  */
 /*--------------------------------------------------------------------------*/
 
-dictionary * iniparser_new(char *ininame)
+dictionary * iniparser_new(const char *ininame)
 {
     dictionary  *   d ;
     char        lin[ASCIILINESZ+1];
