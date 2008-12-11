@@ -15,7 +15,7 @@
 
 AC_INIT
 AC_PREREQ(2.59)
-AM_INIT_AUTOMAKE(pcapsplit, 0.0a)
+AM_INIT_AUTOMAKE(pcapsplit, 0.0b)
 
 AC_CHECK_HEADERS(stdio.h stdlib.h unistd.h libgen.h sys/types.h ctype.h string.h)
 
