@@ -15,7 +15,7 @@
 
 #include "packet.h"
 #include "dumping_module.h"
-#include "size_dumper.h"
+#include "conf.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +29,7 @@
 void usage(char* progname)
 {
 	fprintf(stderr, "\n%s version %s\n\n", basename(progname), VERSION);
-	fprintf(stderr, "Usage: %s <pcapfile> slicesize(in MB)\n\n", basename(progname));
+	fprintf(stderr, "Usage: %s <pcapfile> <config-file>\n\n", basename(progname));
 }
 
 int main(int argc, char** argv)
@@ -43,10 +43,9 @@ int main(int argc, char** argv)
 	struct dumpers dumps;
 	dumpers_init(&dumps);
 
-	//create_all_dumpers(&dumps);
+	struct config* conf = config_new(argv[2]);
 
-	size_dumper.dinit(&size_dumper, argv[1]);
-	dumpers_add(&dumps, &size_dumper);
+	create_all_dumpers(&dumps, conf);
 
 	pcap_t* pfile = pcap_open_offline(argv[1], errorBuffer); 
 	if (!pfile) {
@@ -63,6 +62,7 @@ int main(int argc, char** argv)
 	}
 
 	dumpers_finish(&dumps);
+	config_free(conf);
 
 	return 0;
 }
