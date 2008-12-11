@@ -1,2 +1,6 @@
+Version 0.0b:
+	- introduced module subsystem
+	- pcapsplit can now be configured via ini files
+
 Version 0.0a:
 	- split pcap files according to file size
