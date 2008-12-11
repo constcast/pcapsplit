@@ -23,7 +23,7 @@ struct dumping_module* get_module(const char* name)
 {
 	struct dumping_module* ret = NULL;
 
-	if (strcmp(name, "size_dumper") == 0) {
+	if (strcmp(name, SIZE_DUMPER_NAME) == 0) {
 		ret = size_dumper_new();
 	}
 

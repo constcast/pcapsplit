@@ -25,7 +25,7 @@ struct dumping_module;
 
 #define MAX_MODULES 100
 
-typedef int (dumper_init)(struct dumping_module* m, void* data);
+typedef int (dumper_init)(struct dumping_module* m, struct config* data);
 typedef int (dumper_finish)(struct dumping_module* m);
 typedef int (dumper_func)(struct dumping_module* m, struct packet* p);
 

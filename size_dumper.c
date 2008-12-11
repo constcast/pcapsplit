@@ -50,15 +50,28 @@ void createNewFile(struct size_dumper_data* data)
 	data->file_data_count = 0;
 }
 
-int size_dumper_init(struct dumping_module* m, void* data)
+int size_dumper_init(struct dumping_module* m, struct config* c)
 {
 	struct size_dumper_data* sdata = (struct size_dumper_data*)malloc(
 		sizeof(struct size_dumper_data));
-	strncpy(sdata->base_filename, (char*)data, MAX_FILENAME);
+
+	const char* tmp = config_get_option(c, SIZE_DUMPER_NAME, "file_prefix");
+	if (tmp == NULL) {
+		fprintf(stderr, "%s: no filename in config file\n", SIZE_DUMPER_NAME);
+		return -1;
+	}
+	strncpy(sdata->base_filename, tmp, MAX_FILENAME);
+
 	sdata->number = 0;
 	sdata->file_data_count = 0;
-	// TODO: make configurable
+	
+	tmp = config_get_option(c, SIZE_DUMPER_NAME, "size");
+	if (tmp == NULL) {
+		fprintf(stderr, "%s: no file size in config file\n", "size");
+		return -1;
+	}
 	sdata->max_file_data_count = 1000;
+
 	createNewFile(sdata);
 
 	m->module_data = (void*)sdata;
