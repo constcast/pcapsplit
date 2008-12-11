@@ -70,7 +70,7 @@ int size_dumper_init(struct dumping_module* m, struct config* c)
 		fprintf(stderr, "%s: no file size in config file\n", "size");
 		return -1;
 	}
-	sdata->max_file_data_count = 1000;
+	sdata->max_file_data_count = atoi(tmp);
 
 	createNewFile(sdata);
 
