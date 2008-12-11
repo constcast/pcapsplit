@@ -14,7 +14,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "packet.h"
-#include "dumping_list.h"
 #include "dumping_module.h"
 #include "size_dumper.h"
 
