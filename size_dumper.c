@@ -20,12 +20,14 @@
 
 #define MAX_FILENAME 65535
 
-struct dumping_module size_dumper = {
-	size_dumper_init,
-	size_dumper_finish,
-	size_dumper_run
-};
-
+struct dumping_module* size_dumper_new()
+{
+	struct dumping_module* ret = (struct dumping_module*)malloc(sizeof(struct dumping_module*));
+	ret->dinit = size_dumper_init;
+	ret->dfunc = size_dumper_run;
+	ret->dfinish = size_dumper_finish;
+	return ret;
+}
 
 struct size_dumper_data {
 	char base_filename[MAX_FILENAME];

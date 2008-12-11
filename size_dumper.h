@@ -18,10 +18,10 @@
 
 #include "dumping_module.h"
 
+struct dumping_module* size_dumper_new();
+
 int size_dumper_init(struct dumping_module* m, void* data);
 int size_dumper_finish(struct dumping_module* m);
 int size_dumper_run(struct dumping_module* m, struct packet* p);
-
-extern struct dumping_module size_dumper;  
 
 #endif

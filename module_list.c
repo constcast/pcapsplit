@@ -15,12 +15,17 @@
 
 #include "module_list.h"
 #include "dumping_module.h"
+#include "size_dumper.h"
 
-
+#include <string.h>
 
 struct dumping_module* get_module(const char* name)
 {
 	struct dumping_module* ret = NULL;
+
+	if (strcmp(name, "size_dumper") == 0) {
+		ret = size_dumper_new();
+	}
 
 	return ret;
 }
