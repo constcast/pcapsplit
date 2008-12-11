@@ -14,6 +14,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "dumping_module.h"
+#include "module_list.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -40,4 +41,20 @@ int dumpers_add(struct dumpers* d, struct dumping_module* dm)
 	d->modules[d->count] = dm;
 	++d->count;
 	return 0;
+}
+
+void create_all_dumpers(struct dumpers* d, struct config* c)
+{
+	const char* module_names[MAX_MODULES];
+	size_t mod_count = config_get_module_names(c, module_names);
+	size_t i;
+	for (i = 0; i != mod_count; ++i) {
+		struct dumping_module* m = get_module(module_names[i]);
+		if (m == NULL) {
+			fprintf(stderr, "No such module %s\n", module_names[i]);
+			continue;
+		}
+		m->dinit(m, c);
+		dumpers_add(d, m);
+	}
 }

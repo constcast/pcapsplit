@@ -17,6 +17,7 @@
 #define _DUMPING_MODULE_H_
 
 #include "packet.h"
+#include "conf.h"
 
 #include <sys/types.h>
 
@@ -43,5 +44,7 @@ struct dumpers {
 int dumpers_init(struct dumpers* d);
 int dumpers_finish(struct dumpers* d);
 int dumpers_add(struct dumpers* d, struct dumping_module* dm);
+
+void create_all_dumpers(struct dumpers* d, struct config* c);
 
 #endif
