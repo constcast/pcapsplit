@@ -10,6 +10,16 @@ $ make
 in order to compile pcapsplit. You need the development version of libpcap
 installed on you system.
 
+The configuration is done via ini files. These files configure all the modules
+that pcapsplit uses to split the source file. Each of these modules does have
+its on section in within the files. The following modules are currently
+implemented:
+
+[size_dumper]
+file_prefix=/path/to/file/prefix
+size=number in bytes
+
+
 Please email bug reports, feature request,etc to
 
 	Lothar Braun <lothar@lobraun.de>
