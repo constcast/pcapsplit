@@ -15,6 +15,7 @@
 
 AC_INIT
 AC_PREREQ(2.59)
+AC_PROG_RANLIB
 AM_INIT_AUTOMAKE(pcapsplit, 0.0b)
 
 AC_CHECK_HEADERS(stdio.h stdlib.h unistd.h libgen.h sys/types.h ctype.h string.h)
@@ -28,6 +29,6 @@ AC_CHECK_LIB([pcap], [pcap_open_live],
               AC_SUBST(LDFLAGS)],
              [AC_MSG_ERROR([*** could not find libpcap. Please install it.])])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile modules/Makefile])
 
 AC_OUTPUT

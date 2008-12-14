@@ -15,7 +15,7 @@
 
 #include "module_list.h"
 #include "dumping_module.h"
-#include "size_dumper.h"
+#include <modules/size_dumper.h>
 
 #include <string.h>
 
