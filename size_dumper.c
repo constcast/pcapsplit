@@ -42,7 +42,7 @@ struct size_dumper_data {
 void createNewFile(struct size_dumper_data* data)
 {
 	snprintf(data->dump_filename, MAX_FILENAME, "%s.%lu",
-		data->base_filename, data->number);
+		data->base_filename, (unsigned long)data->number);
 	//TODO: use DLT from source file
 	data->out = pcap_open_dead(DLT_EN10MB, 65535);
 	data->dumper = pcap_dump_open(data->out, data->dump_filename);
