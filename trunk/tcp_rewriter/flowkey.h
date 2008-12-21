@@ -1,9 +1,11 @@
 #ifndef _FLOW_KEY_H_
 #define _FLOW_KEY_H_
 
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#include <sys/types.h>
 #include <cstring>
 
 #define FLOW_KEY_LEN 14
