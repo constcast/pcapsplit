@@ -7,6 +7,8 @@ struct ConnPacket {
 	uint64_t oldId;
 	uint64_t newId;
 	uint16_t len;
+
+	bool operator==(const ConnPacket& other);
 };
 
 #endif
