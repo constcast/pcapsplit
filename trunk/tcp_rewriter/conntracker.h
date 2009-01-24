@@ -8,13 +8,7 @@
 #include <vector>
 
 #include "flowkey.h"
-
-struct ConnPacket {
-	uint32_t seq;
-	uint32_t ack;
-	uint64_t oldId;
-	uint64_t newId;
-};
+#include "connpacket.h"
 
 class ConnTracker {
 public:
@@ -34,6 +28,7 @@ private:
 	std::map<uint64_t, uint64_t> outputList;
 	
 	void reorderConnection(PacketList& pList);
+	void removeDuplicatesFromConnection(PacketList& pList);
 	static bool compare_seq(const ConnPacket& l, const ConnPacket& r);
 	static uint32_t start_seq;
 };
