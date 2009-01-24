@@ -34,6 +34,8 @@ private:
 	std::map<uint64_t, uint64_t> outputList;
 	
 	void reorderConnection(PacketList& pList);
+	static bool compare_seq(const ConnPacket& l, const ConnPacket& r);
+	static uint32_t start_seq;
 };
 
 #endif

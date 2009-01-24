@@ -5,9 +5,21 @@
 #include <iostream>
 #include <algorithm>
 
-static bool compare_seq(const ConnPacket& l, const ConnPacket& r)
+uint32_t ConnTracker::start_seq = 0;
+
+bool ConnTracker::compare_seq(const ConnPacket& l, const ConnPacket& r)
 {
-	return l.seq < r.seq;
+	if ((l.seq >= start_seq && r.seq >= start_seq) || (l.seq < start_seq && r.seq < start_seq))
+		return l.seq < r.seq;
+	else if (l.seq < start_seq && r.seq >= start_seq)
+		return true;
+	else if (r.seq < start_seq && l.seq >= start_seq)
+		return false;
+
+	// we should never get here
+	std::cerr << "ConnTracker::compare_seq logical error detected! start_seq == " << start_seq
+		  << " l.seq == " << l.seq << " r.seq == " << r.seq << std::endl;
+	return true;
 }
 
 ConnTracker::ConnTracker()
@@ -45,6 +57,7 @@ void ConnTracker::reorder()
 
 void ConnTracker::reorderConnection(PacketList& pList)
 {
+	start_seq = pList.begin()->seq;
 	std::sort(pList.begin(), pList.end(), compare_seq);
 }
 
