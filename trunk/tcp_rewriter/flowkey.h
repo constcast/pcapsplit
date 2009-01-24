@@ -56,6 +56,7 @@ class TcpFlowKey
 			}
 			seq = tcph->th_seq;
 			ack = tcph->th_ack;
+			packet_len = iph->ip_len; // TODO: calculate payload len instead ...
 		}
 
 		bool isTCP() { return is_tcp; }
@@ -77,6 +78,7 @@ class TcpFlowKey
 		
 		uint32_t seq;
 		uint32_t ack;
+		uint16_t packet_len;
 	private:
 		bool is_tcp;
 };
