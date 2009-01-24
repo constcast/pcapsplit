@@ -5,7 +5,7 @@
 #include <sys/types.h>
 
 #include <map>
-#include <list>
+#include <vector>
 
 #include "flowkey.h"
 
@@ -21,7 +21,7 @@ public:
 	ConnTracker();
 	void addPacket(const uint8_t* packetData, struct pcap_pkthdr* packetHeader);
 
-	typedef std::list<ConnPacket> PacketList;
+	typedef std::vector<ConnPacket> PacketList;
 	typedef std::map<TcpFlowKey, PacketList> ConnList;
 
 	void reorder();
@@ -32,6 +32,8 @@ public:
 private:
 	ConnList connList;
 	std::map<uint64_t, uint64_t> outputList;
+	
+	void reorderConnection(PacketList& pList);
 };
 
 #endif

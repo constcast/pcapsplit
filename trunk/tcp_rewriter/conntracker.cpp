@@ -3,6 +3,12 @@
 #include <netinet/tcp.h>
 
 #include <iostream>
+#include <algorithm>
+
+static bool compare_seq(const ConnPacket& l, const ConnPacket& r)
+{
+	return l.seq < r.seq;
+}
 
 ConnTracker::ConnTracker()
 {
@@ -31,10 +37,15 @@ void ConnTracker::reorder()
 {
 	int connCounter = 1;
 	for (ConnList::iterator i = connList.begin(); i != connList.end(); ++i) {
-		std::cout << "Reordering connction " << connCounter << std::endl;
-
+		std::cout << "Reordering connction " << connCounter << "..." << std::endl;
+		reorderConnection(i->second);
 		++connCounter;
 	}
+}
+
+void ConnTracker::reorderConnection(PacketList& pList)
+{
+	std::sort(pList.begin(), pList.end(), compare_seq);
 }
 
 void ConnTracker::removeDuplicates()
