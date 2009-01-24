@@ -40,6 +40,7 @@ void ConnTracker::addPacket(const uint8_t* packetData, struct pcap_pkthdr* packe
 	connPacket.newId = id;
 	connPacket.seq = key.seq;
 	connPacket.ack = key.ack;
+	connPacket.len = key.packet_len;
 
 	connList[key].push_back(connPacket);
 	id++;
@@ -49,7 +50,7 @@ void ConnTracker::reorder()
 {
 	int connCounter = 1;
 	for (ConnList::iterator i = connList.begin(); i != connList.end(); ++i) {
-		std::cout << "Reordering connction " << connCounter << "..." << std::endl;
+		std::cout << "Reordering flow " << connCounter << "..." << std::endl;
 		reorderConnection(i->second);
 		++connCounter;
 	}
@@ -57,13 +58,34 @@ void ConnTracker::reorder()
 
 void ConnTracker::reorderConnection(PacketList& pList)
 {
+	// TODO: find SYN-paket to extract start_seq from
 	start_seq = pList.begin()->seq;
 	std::sort(pList.begin(), pList.end(), compare_seq);
 }
 
 void ConnTracker::removeDuplicates()
 {
+	int connCounter = 1;
+	for (ConnList::iterator i = connList.begin(); i != connList.end(); ++i) {
+		std::cout << "Removing duplicates from flow " << connCounter << "..." << std::endl;
+		reorderConnection(i->second);
+		++connCounter;
+	}
 
+}
+
+void ConnTracker::removeDuplicatesFromConnection(PacketList& pList)
+{
+	size_t i = 1;
+	size_t prev = 0;
+	while (i <= pList.size()) {
+		if (pList[prev] == pList[i]) {
+			pList.erase(pList.begin() + i);
+		} else {
+			++prev;
+			++i;
+		}
+	}
 }
 
 void ConnTracker::generateOutputList()

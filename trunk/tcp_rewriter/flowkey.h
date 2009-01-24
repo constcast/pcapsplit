@@ -1,7 +1,6 @@
 #ifndef _FLOW_KEY_H_
 #define _FLOW_KEY_H_
 
-#include <sys/types.h>
 #include <netinet/in.h>
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>

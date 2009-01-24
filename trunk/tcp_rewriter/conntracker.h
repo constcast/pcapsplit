@@ -2,7 +2,6 @@
 #define _CONNTRACKER_H_
 
 #include <pcap.h>
-#include <sys/types.h>
 
 #include <map>
 #include <vector>
