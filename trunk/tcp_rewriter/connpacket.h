@@ -1,6 +1,8 @@
 #ifndef _CONNPACKET_H_
 #define _CONNPACKET_H_
 
+#include <stdint.h>
+
 struct ConnPacket {
 	uint32_t seq;
 	uint32_t ack;

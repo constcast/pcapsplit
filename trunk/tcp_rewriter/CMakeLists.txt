@@ -6,6 +6,7 @@ ADD_EXECUTABLE( tcp_rewriter
 	main.cpp
 	pcapfile.cpp
 	conntracker.cpp
+	connpacket.cpp
 )
 
 FIND_LIBRARY(PCAP_LIBRARY NAMES pcap)
