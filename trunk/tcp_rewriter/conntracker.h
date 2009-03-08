@@ -24,7 +24,7 @@ public:
 	size_t count() { return connList.size(); }
 private:
 	ConnList connList;
-	std::map<uint64_t, uint64_t> outputList;
+	PacketList outputList;
 	
 	void reorderConnection(PacketList& pList);
 	void removeDuplicatesFromConnection(PacketList& pList);

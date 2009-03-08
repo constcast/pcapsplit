@@ -36,8 +36,7 @@ void ConnTracker::addPacket(const uint8_t* packetData, struct pcap_pkthdr* packe
 		return;
 
 	ConnPacket connPacket;
-	connPacket.oldId = id;
-	connPacket.newId = id;
+	connPacket.id = id;
 	connPacket.seq = key.seq;
 	connPacket.ack = key.ack;
 	connPacket.len = key.packet_len;
@@ -91,9 +90,37 @@ void ConnTracker::removeDuplicatesFromConnection(PacketList& pList)
 void ConnTracker::generateOutputList()
 {
 	uint64_t outId = 0;
-	for (ConnList::iterator i = connList.begin(); i != connList.end(); ++i) {
-		for (PacketList::const_iterator j = i->second.begin(); j != i->second.end(); ++j) {
-			outputList[outId] = j->oldId;
+	ConnList::iterator i;
+	while (connList.size() != 0) {
+		i = connList.begin();
+		TcpFlowKey reverseKey;
+		reverseKey.reverse(i->first);
+		ConnList::iterator j = connList.find(reverseKey);
+		if (j == connList.end()) {
+			// only one side of the connection was seen
+			for (PacketList::iterator k = i->second.begin(); k != i->second.end(); ++k)
+				outputList.push_back(*k);
+			connList.erase(i);
+		} else {
+			size_t fside = 0;
+			size_t bside = 0;
+			PacketList& front = i->second;
+			PacketList& back =  j->second;
+			uint32_t fsseq = front[0].seq;
+			uint32_t fsack = front[0].ack;
+			uint32_t bsseq = back[0].seq;
+			uint32_t bsack = back[0].ack;
+			while (fside < front.size() && bside < back.size()) {
+				if (front[fside].seq < back[bside].ack) {
+					outputList.push_back(front[fside]);
+					++fside;
+				} else if (front[fside].seq == back[bside].ack) {
+					//if (front[fside].ack 
+				} else {
+					outputList.push_back(back[bside]);
+					++bside;
+				}
+			}
 		}
 	}
 }

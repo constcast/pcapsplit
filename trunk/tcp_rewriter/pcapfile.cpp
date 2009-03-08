@@ -42,3 +42,8 @@ PcapFile::~PcapFile()
 		pcap_close(pcapOutFile);
 	}
 }
+
+void PcapFile::writeToFile(ConnTracker* connTracker)
+{
+}
+
