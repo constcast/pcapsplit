@@ -28,6 +28,7 @@ private:
 	
 	void reorderConnection(PacketList& pList);
 	void removeDuplicatesFromConnection(PacketList& pList);
+
 	static bool compare_seq(const ConnPacket& l, const ConnPacket& r);
 	static uint32_t start_seq;
 };

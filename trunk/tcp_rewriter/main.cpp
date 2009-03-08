@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 	ConnTracker connTracker;
 
 	try {
-		PcapFile infile(inputFile);
+		PcapFile infile(inputFile, outputFile);
 		std::cout << "Reading data from file..." << std::endl;
 		infile.readToMem(&connTracker);
 		std::cout << "Found " << connTracker.count() << " tcp connections in pcap file." << std::endl;
