@@ -28,6 +28,14 @@ public:
 		memset(data,0,sizeof(data));
 	}
 
+	void reverse(const TcpFlowKey& flow)
+	{
+		getFlowKey()->srcIp = flow.getFlowKey()->dstIp;
+		getFlowKey()->dstIp = flow.getFlowKey()->srcIp;
+		getFlowKey()->srcPort = flow.getFlowKey()->dstPort;
+		getFlowKey()->dstPort = flow.getFlowKey()->srcPort;
+	}
+
 	TcpFlowKey(const uint8_t* packet_data, bool reverseOrder = false, uint8_t ip_offset = 14) 
 		: len(FLOW_KEY_LEN), is_tcp(false)
 	{
@@ -60,7 +68,7 @@ public:
 
 	bool isTCP() { return is_tcp; }
 
-	inline FlowKey* getFlowKey()
+	inline FlowKey* getFlowKey() const
 	{
 		return (FlowKey*)data;
 	}
