@@ -53,9 +53,9 @@ public:
 			getFlowKey()->srcPort = tcph->th_dport;
 			getFlowKey()->dstPort = tcph->th_sport;
 		}
-		seq = tcph->th_seq;
-		ack = tcph->th_ack;
-		packet_len = iph->ip_len; // TODO: calculate payload len instead ...
+		seq = ntohl(tcph->th_seq);
+		ack = ntohl(tcph->th_ack);
+		packet_len = ntohs(iph->ip_len); // TODO: calculate payload len instead ...
 	}
 
 	bool isTCP() { return is_tcp; }
