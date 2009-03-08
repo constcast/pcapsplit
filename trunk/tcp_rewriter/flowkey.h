@@ -41,7 +41,7 @@ public:
 			return;
 		}
 		is_tcp = true;
-		struct tcphdr* tcph = (struct tcphdr*)(iph + iph->ip_hl);
+		struct tcphdr* tcph = (struct tcphdr*)(iph + (iph->ip_hl >> 2));
 		if (!reverseOrder) {
 			getFlowKey()->srcIp = *(uint32_t*)&iph->ip_src;
 			getFlowKey()->dstIp = *(uint32_t*)&iph->ip_dst;
