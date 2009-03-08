@@ -90,9 +90,10 @@ void ConnTracker::removeDuplicatesFromConnection(PacketList& pList)
 
 void ConnTracker::generateOutputList()
 {
+	uint64_t outId = 0;
 	for (ConnList::iterator i = connList.begin(); i != connList.end(); ++i) {
 		for (PacketList::const_iterator j = i->second.begin(); j != i->second.end(); ++j) {
-			outputList[j->oldId] = j->newId;
+			outputList[outId] = j->oldId;
 		}
 	}
 }
