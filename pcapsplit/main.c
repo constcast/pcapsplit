@@ -45,13 +45,14 @@ int main(int argc, char** argv)
 
 	struct config* conf = config_new(argv[2]);
 
-	create_all_dumpers(&dumps, conf);
 
 	pcap_t* pfile = pcap_open_offline(argv[1], errorBuffer); 
 	if (!pfile) {
 		fprintf(stderr, "Cannot open %s: %s\n", argv[1], errorBuffer);
 		return -1;
 	}
+
+	create_all_dumpers(&dumps, conf, pcap_datalink(pfile), 65535);
 
 	struct packet p;
 	int i;

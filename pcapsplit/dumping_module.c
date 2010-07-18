@@ -43,7 +43,7 @@ int dumpers_add(struct dumpers* d, struct dumping_module* dm)
 	return 0;
 }
 
-void create_all_dumpers(struct dumpers* d, struct config* c)
+void create_all_dumpers(struct dumpers* d, struct config* c, int linktype, int snaplen)
 {
 	const char* module_names[MAX_MODULES];
 	size_t mod_count = config_get_module_names(c, module_names);
@@ -54,6 +54,8 @@ void create_all_dumpers(struct dumpers* d, struct config* c)
 			fprintf(stderr, "No such module %s\n", module_names[i]);
 			continue;
 		}
+		m->linktype = linktype;
+		m->snaplen = snaplen;
 		m->dinit(m, c);
 		dumpers_add(d, m);
 	}

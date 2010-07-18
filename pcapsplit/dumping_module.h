@@ -34,6 +34,8 @@ struct dumping_module {
 	dumper_finish* dfinish;
 	dumper_func* dfunc;
 	void* module_data;
+	int linktype;
+	int snaplen;
 };
 
 struct dumpers {
@@ -45,6 +47,6 @@ int dumpers_init(struct dumpers* d);
 int dumpers_finish(struct dumpers* d);
 int dumpers_add(struct dumpers* d, struct dumping_module* dm);
 
-void create_all_dumpers(struct dumpers* d, struct config* c);
+void create_all_dumpers(struct dumpers* d, struct config* c, int linktype, int snaplen);
 
 #endif
