@@ -16,4 +16,27 @@
 #ifndef _LIST_H_
 #define _LIST_H_
 
+struct list_element_t {
+	void* data;
+	struct list_element_t* prev;
+	struct list_element_t* next;
+};
+
+typedef struct {
+	struct list_element_t* head;
+	struct list_element_t* tail;
+} list_t;
+
+list_t* list_create();
+inline int list_destroy(list_t* list);
+
+inline struct list_element_t* list_front(list_t* list);
+inline struct list_element_t* list_back(list_t* list);
+
+inline int list_push_front(list_t* list, struct list_element_t* element);
+inline int list_push_back(list_t* list, struct list_element_t* element);
+
+inline struct list_element_t* list_pop_front(list_t* list);
+inline struct list_element_t* list_pop_back(list_t* list);
+
 #endif
