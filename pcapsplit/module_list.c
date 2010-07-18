@@ -16,6 +16,7 @@
 #include "module_list.h"
 #include "dumping_module.h"
 #include <modules/size_dumper.h>
+#include <modules/filter_dumper.h>
 
 #include <string.h>
 
@@ -25,6 +26,8 @@ struct dumping_module* get_module(const char* name)
 
 	if (strcmp(name, SIZE_DUMPER_NAME) == 0) {
 		ret = size_dumper_new();
+	} else if (strcmp(name, FILTER_DUMPER_NAME) == 0) {
+		ret = filter_dumper_new();
 	}
 
 	return ret;
