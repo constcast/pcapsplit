@@ -39,12 +39,11 @@ struct size_dumper_data {
 	pcap_dumper_t* dumper;
 };
 
-void createNewFile(struct size_dumper_data* data)
+void createNewFile(struct size_dumper_data* data, int linktype)
 {
 	snprintf(data->dump_filename, MAX_FILENAME, "%s.%lu",
 		data->base_filename, (unsigned long)data->number);
-	//TODO: use DLT from source file
-	data->out = pcap_open_dead(DLT_EN10MB, 65535);
+	data->out = pcap_open_dead(linktype, 65535);
 	data->dumper = pcap_dump_open(data->out, data->dump_filename);
 	data->number++;
 	data->file_data_count = 0;
@@ -72,7 +71,7 @@ int size_dumper_init(struct dumping_module* m, struct config* c)
 	}
 	sdata->max_file_data_count = atoi(tmp);
 
-	createNewFile(sdata);
+	createNewFile(sdata, m->linktype);
 
 	m->module_data = (void*)sdata;
 
@@ -97,7 +96,7 @@ int size_dumper_run(struct dumping_module* m, struct packet* p)
 	if (d->file_data_count >= d->max_file_data_count) {
 		pcap_dump_flush(d->dumper);
 		pcap_dump_close(d->dumper);
-		createNewFile(d);
+		createNewFile(d, m->linktype);
 	}
 	return 0;
 }

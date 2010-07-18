@@ -1,3 +1,6 @@
+Version 0.0c:
+	- Use link type from source file for output files
+
 Version 0.0b:
 	- introduced module subsystem
 	- pcapsplit can now be configured via ini files
