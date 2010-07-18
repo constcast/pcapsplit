@@ -1,4 +1,4 @@
-SUBDIRS = modules
+SUBDIRS = modules tools
 
 bin_PROGRAMS=pcapsplit
 
@@ -9,4 +9,4 @@ pcapsplit_SOURCES=main.c packet.h dumping_module.h \
 AM_CFLAGS=-Wall -Werror -g -I$(top_srcdir)
 AM_LDFLAGS=
 
-pcapsplit_LDADD=modules/libmodules.a -lpcap
+pcapsplit_LDADD=modules/libmodules.a tools/libtools.a -lpcap
