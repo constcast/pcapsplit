@@ -17,7 +17,7 @@ implemented:
 
 [size_dumper]
 file_prefix=/path/to/file/prefix
-size=number in bytes
+size=size in bytes
 
 
 Please email bug reports, feature request,etc to
