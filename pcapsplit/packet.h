@@ -18,9 +18,26 @@
 
 #include <pcap.h>
 
+#include <net/ethernet.h>
+#include <netinet/ip.h>
+#include <netinet/ip6.h>
+#ifdef linux
+#define __FAVOR_BSD
+#endif
+#include <netinet/udp.h>
+#include <netinet/tcp.h>
+
 struct packet {
 	struct pcap_pkthdr header;
 	const unsigned char* data;
+
+	uint8_t is_ip6;
+
+	struct ip* ip;
+	struct ip6_hdr* ip6;
+	
 };
+
+int packet_init(struct packet* p, struct pcap_pkthdr *header, const unsigned char* data);
 
 #endif

@@ -18,7 +18,7 @@ AC_PREREQ(2.59)
 AC_PROG_RANLIB
 AM_INIT_AUTOMAKE(pcapsplit, 0.0d)
 
-AC_CHECK_HEADERS(stdio.h stdlib.h unistd.h libgen.h sys/types.h ctype.h string.h)
+AC_CHECK_HEADERS(stdio.h stdlib.h unistd.h libgen.h sys/types.h ctype.h string.h netinet/ip.h netinet/ip6.h net/ethernet.h netinet/tcp.h netinet/udp.h arpa/inet.h)
 
 # check for libpcap
 AC_CHECK_HEADER([pcap.h],

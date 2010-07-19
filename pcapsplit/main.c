@@ -57,6 +57,7 @@ int main(int argc, char** argv)
 	struct packet p;
 	int i;
 	while (NULL != (p.data = pcap_next(pfile, &p.header))) {
+		packet_init(&p, &p.header, p.data);
 		for (i = 0; i != dumps.count; ++i) {
 			dumps.modules[i]->dfunc(dumps.modules[i], &p);
 		}
