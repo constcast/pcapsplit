@@ -44,7 +44,10 @@ int main(int argc, char** argv)
 	dumpers_init(&dumps);
 
 	struct config* conf = config_new(argv[2]);
-
+	if (!conf) {
+		fprintf(stderr, "Invalid config. Abort!\n");
+		return 0;
+	}
 
 	pcap_t* pfile = pcap_open_offline(argv[1], errorBuffer); 
 	if (!pfile) {

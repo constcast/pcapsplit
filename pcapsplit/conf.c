@@ -27,6 +27,11 @@ struct config* config_new(const char* file)
 {
 	struct config* ret = (struct config*)malloc(sizeof(struct config));
 	ret->d = iniparser_new(file);
+	if (ret->d == NULL) {
+		fprintf(stderr, "Error parsing config file!\n");
+		free(ret);
+		return NULL;
+	}
 	return ret;
 }
 
@@ -39,8 +44,14 @@ void config_free(struct config* config)
 
 size_t config_get_module_names(struct config* config, const char** module_names)
 {
-	size_t count = iniparser_getnsec(config->d);
+	int count = iniparser_getnsec(config->d);
 	int i;
+
+	if (count < 0) {
+		fprintf(stderr, "Error in config file detected!\n");
+		return 0;
+	}
+
 	if (count > MAX_MODULES) {
 		fprintf(stderr, "Config file does contain more modules than allowed\n");
 		return 0;

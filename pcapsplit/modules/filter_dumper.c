@@ -37,10 +37,7 @@ struct filter_dumper_data {
 
 int filter_dumper_init(struct dumping_module* m, struct config* c)
 {
-	struct filter_dumper_data* sdata = (struct filter_dumper_data*)malloc(
-		sizeof(struct filter_dumper_data));
-
-	
+	struct filter_dumper_data* sdata = (struct filter_dumper_data*)malloc(sizeof(struct filter_dumper_data));
 
 	m->module_data = (void*)sdata;
 
@@ -49,8 +46,8 @@ int filter_dumper_init(struct dumping_module* m, struct config* c)
 
 int filter_dumper_finish(struct dumping_module* m)
 {
-	struct size_dumper_data* d = (struct size_dumper_data*)m->module_data;
-	free(d);
+	//struct size_dumper_data* d = (struct size_dumper_data*)m->module_data;
+	free(m->module_data);
 	m->module_data = NULL;
 	return 0;
 }
