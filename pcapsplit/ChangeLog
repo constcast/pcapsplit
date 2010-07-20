@@ -1,3 +1,6 @@
+Version 0.1:
+	- New module for splitting pcaps into several files according to BPF filters
+
 Version 0.0c-1:
 	- Fix: Segmentation Fault
 
