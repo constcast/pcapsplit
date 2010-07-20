@@ -110,6 +110,14 @@ int filter_dumper_init(struct dumping_module* m, struct config* c)
 int filter_dumper_finish(struct dumping_module* m)
 {
 	struct filter_dumper_data* d = (struct filter_dumper_data*)m->module_data;
+	struct list_element_t* i = d->filter_list->tail;
+	while (i) {
+		struct filter_element* f = (struct filter_element*)i->data;
+		dumper_tool_close_file(&f->dumper);
+		pcap_freecode(&f->filter_program);
+		i = i->next;
+	}
+	list_destroy(d->filter_list);
 	free(d);
 	m->module_data = NULL;
 	return 0;
@@ -117,6 +125,19 @@ int filter_dumper_finish(struct dumping_module* m)
 
 int filter_dumper_run(struct dumping_module* m, struct packet* p)
 {
-	//struct size_dumper_data* d = (struct size_dumper_data*)m->module_data;
+	struct filter_dumper_data* d = (struct filter_dumper_data*)m->module_data;
+
+	struct list_element_t* i = d->filter_list->head;
+	while (i)  {
+		struct filter_element* f = (struct filter_element*)i->data;
+		if (bpf_filter(f->filter_program.bf_insns, (u_char*)p->data, p->header.len, p->header.caplen)) {
+			dumper_tool_dump(f->dumper , &p->header, p->data);
+			return 0;
+		}
+		i = i->next;
+	}
+
+	printf("Skipping packet!\n");
+
 	return 0;
 }
