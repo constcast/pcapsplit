@@ -15,6 +15,8 @@
 
 #include "filter_dumper.h"
 
+#include <tools/list.h>
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,13 +32,15 @@ struct dumping_module* filter_dumper_new()
 }
 
 struct filter_dumper_data {
-	int filter_id;
+	list_t* filter_list;
 };
 
 int filter_dumper_init(struct dumping_module* m, struct config* c)
 {
 	struct filter_dumper_data* sdata = (struct filter_dumper_data*)malloc(
 		sizeof(struct filter_dumper_data));
+
+	
 
 	m->module_data = (void*)sdata;
 

@@ -19,8 +19,6 @@
 #include "dumping_module.h"
 #include "conf.h"
 
-#define FILTER_DUMPER_NAME "filter_dumper"
-
 struct dumping_module* filter_dumper_new();
 
 int filter_dumper_init(struct dumping_module* m, struct config* data);

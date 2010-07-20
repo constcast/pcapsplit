@@ -19,8 +19,6 @@
 #include "dumping_module.h"
 #include "conf.h"
 
-#define SIZE_DUMPER_NAME "size_dumper"
-
 struct dumping_module* size_dumper_new();
 
 int size_dumper_init(struct dumping_module* m, struct config* data);

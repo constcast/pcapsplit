@@ -15,6 +15,8 @@
 
 #include "size_dumper.h"
 
+#include <module_list.h>
+
 #include <stdlib.h>
 #include <string.h>
 

@@ -16,6 +16,9 @@
 #ifndef _MODULE_LIST_H_
 #define _MODULE_LIST_H_
 
+#define SIZE_DUMPER_NAME "size_dumper"
+#define FILTER_DUMPER_NAME "filter_dumper"
+
 struct dumping_module;
 
 struct dumping_module* get_module(const char* name);
