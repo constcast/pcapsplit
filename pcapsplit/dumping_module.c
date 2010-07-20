@@ -56,7 +56,10 @@ void dumpers_create_all(struct dumpers* d, struct config* c, int linktype, int s
 		}
 		m->linktype = linktype;
 		m->snaplen = snaplen;
-		m->dinit(m, c);
+		if (m->dinit(m, c) < 0) {
+			fprintf(stderr, "Failed to initialize module %s. Not adding module to dumper tree\n", module_names[i]);
+			continue;
+		}
 		dumpers_add(d, m);
 	}
 }

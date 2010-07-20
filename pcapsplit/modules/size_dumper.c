@@ -41,13 +41,17 @@ struct size_dumper_data {
 	struct dumper_tool* dumper;
 };
 
-void createNewFile(struct size_dumper_data* data, int linktype)
+int createNewFile(struct size_dumper_data* data, int linktype)
 {
 	snprintf(data->dump_filename, MAX_FILENAME, "%s.%lu",
 		data->base_filename, (unsigned long)data->number);
 	data->dumper = dumper_tool_open_file(data->dump_filename, linktype);
+	if (!data->dumper) {
+		return -1;
+	}
 	data->number++;
 	data->file_data_count = 0;
+	return 0;
 }
 
 int size_dumper_init(struct dumping_module* m, struct config* c)
@@ -72,11 +76,16 @@ int size_dumper_init(struct dumping_module* m, struct config* c)
 	}
 	sdata->max_file_data_count = atoi(tmp);
 
-	createNewFile(sdata, m->linktype);
+	if (-1 == createNewFile(sdata, m->linktype)) 
+		goto out;
+	
 
 	m->module_data = (void*)sdata;
-
 	return 0;
+
+out: 
+	free(sdata);
+	return -1;
 }
 
 int size_dumper_finish(struct dumping_module* m)
@@ -91,11 +100,14 @@ int size_dumper_finish(struct dumping_module* m)
 int size_dumper_run(struct dumping_module* m, struct packet* p)
 {
 	struct size_dumper_data* d = (struct size_dumper_data*)m->module_data;
+	
 	dumper_tool_dump(d->dumper, &p->header, p->data);
 	d->file_data_count += p->header.len;
 	if (d->file_data_count >= d->max_file_data_count) {
 		dumper_tool_close_file(&d->dumper);
-		createNewFile(d, m->linktype);
+		if (-1 == createNewFile(d, m->linktype)) {
+			return -1;
+		}
 	}
 	return 0;
 }
