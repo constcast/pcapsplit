@@ -60,3 +60,4 @@ void create_all_dumpers(struct dumpers* d, struct config* c, int linktype, int s
 		dumpers_add(d, m);
 	}
 }
+

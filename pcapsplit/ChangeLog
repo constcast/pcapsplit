@@ -1,3 +1,6 @@
+Version 0.0c-1:
+	- Fix: Segmentation Fault
+
 Version 0.0c:
 	- Use link type from source file for output files
 

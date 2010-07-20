@@ -23,6 +23,7 @@ int dumper_tool_close_file(struct dumper_tool** dumper)
 
 int dumper_tool_dump(struct dumper_tool* d, struct pcap_pkthdr* header, const unsigned char* data)
 {
-	return pcap_dump((unsigned char*)d->dumper, header, data);
+	pcap_dump((unsigned char*)d->dumper, header, data);
+	return 0;
 }
 
