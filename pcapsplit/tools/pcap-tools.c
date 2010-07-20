@@ -10,7 +10,7 @@ struct dumper_tool* dumper_tool_open_file(const char* filename, int linktype)
 	return ret;
 }
 
-int dumper_tools_close_file(struct dumper_tool** dumper)
+int dumper_tool_close_file(struct dumper_tool** dumper)
 {
 	pcap_dump_flush((*dumper)->dumper);
 	pcap_dump_close((*dumper)->dumper);
@@ -19,5 +19,10 @@ int dumper_tools_close_file(struct dumper_tool** dumper)
 	dumper = NULL;
 	
 	return 0;
+}
+
+int dumper_tool_dump(struct dumper_tool* d, struct pcap_pkthdr* header, const unsigned char* data)
+{
+	return pcap_dump((unsigned char*)d->dumper, header, data);
 }
 

@@ -16,6 +16,7 @@
 #include "size_dumper.h"
 
 #include <module_list.h>
+#include <tools/pcap-tools.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -37,16 +38,14 @@ struct size_dumper_data {
 	size_t number;
 	size_t file_data_count;
 	size_t max_file_data_count;
-	pcap_t* out;
-	pcap_dumper_t* dumper;
+	struct dumper_tool* dumper;
 };
 
 void createNewFile(struct size_dumper_data* data, int linktype)
 {
 	snprintf(data->dump_filename, MAX_FILENAME, "%s.%lu",
 		data->base_filename, (unsigned long)data->number);
-	data->out = pcap_open_dead(linktype, 65535);
-	data->dumper = pcap_dump_open(data->out, data->dump_filename);
+	data->dumper = dumper_tool_open_file(data->dump_filename, linktype);
 	data->number++;
 	data->file_data_count = 0;
 }
@@ -83,8 +82,7 @@ int size_dumper_init(struct dumping_module* m, struct config* c)
 int size_dumper_finish(struct dumping_module* m)
 {
 	struct size_dumper_data* d = (struct size_dumper_data*)m->module_data;
-	pcap_dump_flush(d->dumper);
-	pcap_dump_close(d->dumper);
+	dumper_tool_close_file(&d->dumper);
 	free(m->module_data);
 	m->module_data = NULL;
 	return 0;
@@ -93,11 +91,10 @@ int size_dumper_finish(struct dumping_module* m)
 int size_dumper_run(struct dumping_module* m, struct packet* p)
 {
 	struct size_dumper_data* d = (struct size_dumper_data*)m->module_data;
-	pcap_dump((unsigned char*)d->dumper, &p->header, p->data);
+	dumper_tool_dump(d->dumper, &p->header, p->data);
 	d->file_data_count += p->header.len;
 	if (d->file_data_count >= d->max_file_data_count) {
-		pcap_dump_flush(d->dumper);
-		pcap_dump_close(d->dumper);
+		dumper_tool_close_file(&d->dumper);
 		createNewFile(d, m->linktype);
 	}
 	return 0;
