@@ -24,7 +24,6 @@ int packet_init(struct packet* p, struct pcap_pkthdr* header, const unsigned cha
 {
 	uint16_t et = ntohs(ETHERNET(data)->ether_type);
 	if (!(et == ETHERTYPE_IP || et == ETHERTYPE_IPV6 || et == ETHERTYPE_VLAN)) {
-		//printf("Unknown ethernet type: %u\n", et);
 		p->data = data;
 		p->is_ip = p->is_ip6 = 0;
 		p->ip =  NULL;

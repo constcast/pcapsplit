@@ -24,7 +24,7 @@
 
 struct dumping_module* filter_dumper_new()
 {
-	struct dumping_module* ret = (struct dumping_module*)malloc(sizeof(struct dumping_module*));
+	struct dumping_module* ret = (struct dumping_module*)malloc(sizeof(struct dumping_module));
 	ret->dinit = filter_dumper_init;
 	ret->dfunc = filter_dumper_run;
 	ret->dfinish = filter_dumper_finish;
@@ -33,6 +33,7 @@ struct dumping_module* filter_dumper_new()
 
 struct filter_dumper_data {
 	list_t* filter_list;
+	int i;
 };
 
 int filter_dumper_init(struct dumping_module* m, struct config* c)
@@ -46,8 +47,8 @@ int filter_dumper_init(struct dumping_module* m, struct config* c)
 
 int filter_dumper_finish(struct dumping_module* m)
 {
-	//struct size_dumper_data* d = (struct size_dumper_data*)m->module_data;
-	free(m->module_data);
+	struct filter_dumper_data* d = (struct filter_dumper_data*)m->module_data;
+	free(d);
 	m->module_data = NULL;
 	return 0;
 }

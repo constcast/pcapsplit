@@ -83,7 +83,7 @@ int size_dumper_finish(struct dumping_module* m)
 {
 	struct size_dumper_data* d = (struct size_dumper_data*)m->module_data;
 	dumper_tool_close_file(&d->dumper);
-	free(m->module_data);
+	free(d);
 	m->module_data = NULL;
 	return 0;
 }
