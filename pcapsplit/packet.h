@@ -31,6 +31,7 @@ struct packet {
 	struct pcap_pkthdr header;
 	const unsigned char* data;
 
+	uint8_t is_ip;
 	uint8_t is_ip6;
 
 	struct ip* ip;
