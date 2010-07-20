@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	create_all_dumpers(&dumps, conf, pcap_datalink(pfile), 65535);
+	dumpers_create_all(&dumps, conf, pcap_datalink(pfile), 65535);
 
 	struct packet p;
 	int i;

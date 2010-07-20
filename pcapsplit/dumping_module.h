@@ -47,6 +47,6 @@ int dumpers_init(struct dumpers* d);
 int dumpers_finish(struct dumpers* d);
 int dumpers_add(struct dumpers* d, struct dumping_module* dm);
 
-void create_all_dumpers(struct dumpers* d, struct config* c, int linktype, int snaplen);
+void dumpers_create_all(struct dumpers* d, struct config* c, int linktype, int snaplen);
 
 #endif
