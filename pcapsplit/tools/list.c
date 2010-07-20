@@ -16,15 +16,23 @@
 #include "list.h"
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
 
 list_t* list_create()
 {
 	list_t* ret = (list_t*)malloc(sizeof(list_t));
+	if (!ret) {
+		fprintf(stderr, "Could not allocate memory: %s\n", strerror(errno));
+		return NULL;
+	}
 
 	ret->head = NULL;
 	ret->tail = NULL;
+	ret->size = 0;
 
-	return NULL;
+	return ret;
 }
 
 inline int list_destroy(list_t* list)
@@ -57,6 +65,7 @@ inline int list_push_front(list_t* list, struct list_element_t* element)
 		element->prev = NULL;
 		element->next = NULL;
 	}
+	list->size++;
 	return 0;
 }
 
@@ -74,6 +83,7 @@ inline int list_push_back(list_t* list, struct list_element_t* element)
 		element->prev = NULL;
 		element->next = NULL;
 	}
+	list->size++;
 	return 0;
 }
 
@@ -90,6 +100,7 @@ inline struct list_element_t* list_pop_front(list_t* list)
 		list->head = list->tail = NULL;
 	}
 	ret->next = ret->prev = NULL;
+	list->size--;
 	return ret;
 }
 
@@ -107,6 +118,7 @@ inline struct list_element_t* list_pop_back(list_t* list)
 		list->head = list->tail = NULL;
 	}
 	ret->next = ret->prev = NULL;
+	list->size--;
 	return ret;
 }
 

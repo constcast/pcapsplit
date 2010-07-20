@@ -16,6 +16,8 @@
 #ifndef _LIST_H_
 #define _LIST_H_
 
+#include <stddef.h>
+
 struct list_element_t {
 	void* data;
 	struct list_element_t* prev;
@@ -25,6 +27,7 @@ struct list_element_t {
 typedef struct {
 	struct list_element_t* head;
 	struct list_element_t* tail;
+	size_t size;
 } list_t;
 
 list_t* list_create();
