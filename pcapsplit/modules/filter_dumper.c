@@ -40,12 +40,6 @@ struct filter_dumper_data {
 	list_t* filter_list;
 };
 
-struct filter_element {
-	struct bpf_program filter_program;
-	struct dumper_tool* dumper;
-};
-	
-
 int filter_dumper_init(struct dumping_module* m, struct config* c)
 {
 	struct filter_dumper_data* sdata = (struct filter_dumper_data*)malloc(sizeof(struct filter_dumper_data));
@@ -73,7 +67,7 @@ int filter_dumper_finish(struct dumping_module* m)
 	struct filter_dumper_data* d = (struct filter_dumper_data*)m->module_data;
 	struct list_element_t* i = d->filter_list->tail;
 	while (i) {
-		struct filter_element* f = (struct filter_element*)i->data;
+		struct class_t* f = (struct class_t*)i->data;
 		dumper_tool_close_file(&f->dumper);
 		pcap_freecode(&f->filter_program);
 		i = i->next;
@@ -90,7 +84,7 @@ int filter_dumper_run(struct dumping_module* m, struct packet* p)
 
 	struct list_element_t* i = d->filter_list->head;
 	while (i)  {
-		struct filter_element* f = (struct filter_element*)i->data;
+		struct class_t* f = (struct class_t*)i->data;
 		if (bpf_filter(f->filter_program.bf_insns, (u_char*)p->data, p->header.len, p->header.caplen)) {
 			dumper_tool_dump(f->dumper , &p->header, p->data);
 			return 0;
