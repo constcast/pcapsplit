@@ -49,6 +49,9 @@ void dumpers_create_all(struct dumpers* d, struct config* c, int linktype, int s
 	size_t mod_count = config_get_module_names(c, module_names);
 	size_t i;
 	for (i = 0; i != mod_count; ++i) {
+		if (strcmp(module_names[i], MAIN_NAME) == 0) {
+			continue;
+		}
 		struct dumping_module* m = get_module(module_names[i]);
 		if (m == NULL) {
 			fprintf(stderr, "No such module %s\n", module_names[i]);

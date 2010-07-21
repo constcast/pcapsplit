@@ -28,6 +28,8 @@ struct dumping_module* get_module(const char* name)
 		ret = size_dumper_new();
 	} else if (strcmp(name, FILTER_DUMPER_NAME) == 0) {
 		ret = filter_dumper_new();
+	} else if (strcmp(name, MAIN_NAME) == 0) {
+		// no module for main
 	}
 
 	return ret;

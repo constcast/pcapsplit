@@ -16,6 +16,7 @@
 #ifndef _MODULE_LIST_H_
 #define _MODULE_LIST_H_
 
+#define MAIN_NAME "main"
 #define SIZE_DUMPER_NAME "size_dumper"
 #define FILTER_DUMPER_NAME "filter_dumper"
 
