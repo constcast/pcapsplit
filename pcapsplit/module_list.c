@@ -17,6 +17,7 @@
 #include "dumping_module.h"
 #include <modules/size_dumper.h>
 #include <modules/filter_dumper.h>
+#include <modules/flowstart_dumper.h>
 
 #include <string.h>
 

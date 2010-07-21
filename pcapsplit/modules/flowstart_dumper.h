@@ -1,4 +1,4 @@
-//  Copyright (C) 2008-2010 Lothar Braun <lothar@lobraun.de>
+//  Copyright (C) 2010 Lothar Braun <lothar@lobraun.de>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -13,16 +13,16 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _MODULE_LIST_H_
-#define _MODULE_LIST_H_
+#ifndef _FLOWSTART_DUMPER_H_
+#define _FLOWSTART_DUMPER_H_
 
-#define MAIN_NAME "main"
-#define SIZE_DUMPER_NAME "size_dumper"
-#define FILTER_DUMPER_NAME "filter_dumper"
-#define FLOWSTART_DUMPER_NAME "flowstart_dumper"
+#include "dumping_module.h"
+#include "conf.h"
 
-struct dumping_module;
+struct dumping_module* flowstart_dumper_new();
 
-struct dumping_module* get_module(const char* name);
+int flowstart_dumper_init(struct dumping_module* m, struct config* data);
+int flowstart_dumper_finish(struct dumping_module* m);
+int flowstart_dumper_run(struct dumping_module* m, struct packet* p);
 
 #endif
