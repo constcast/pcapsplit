@@ -93,7 +93,8 @@ int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size)
 int connection_deinit_pool()
 {
 	free(connection_pool.pool);
-	
+	list_destroy(connection_pool.free_list);
+	list_destroy(connection_pool.used_list);
 
 	return 0;
 }

@@ -37,6 +37,13 @@ list_t* list_create()
 
 inline int list_destroy(list_t* list)
 {
+	struct list_element_t *i, *j;
+	i = list->head;
+	while (i) {
+		j = i->next;
+		free(i);
+		i = j;
+	}
 	free(list);
 	return 0;
 }
