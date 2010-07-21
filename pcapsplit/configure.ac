@@ -20,7 +20,7 @@ AM_INIT_AUTOMAKE(pcapsplit, 0.1)
 
 AC_CHECK_HEADERS(stdio.h stdlib.h unistd.h libgen.h sys/types.h ctype.h string.h \
 	netinet/ip.h netinet/ip6.h net/ethernet.h netinet/tcp.h netinet/udp.h arpa/inet.h \
-	stddef.h stdint.h netinet/in.h)
+	stddef.h stdint.h netinet/in.h errno.h)
 
 # check for libpcap
 AC_CHECK_HEADER([pcap.h],
