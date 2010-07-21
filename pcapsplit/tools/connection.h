@@ -52,4 +52,10 @@ struct connection*  connections = NULL;
 
 int connection_fill(struct connection* c, struct packet* p);
 
+int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size);
+int connection_deinit_pool();
+
+struct connection* connection_new();
+int connection_free(struct connection*);
+
 #endif

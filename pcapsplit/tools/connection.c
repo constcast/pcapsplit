@@ -17,7 +17,20 @@
 
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
+#include <stdlib.h>
+#include <string.h>
+#include <tools/list.h>
 		
+struct connection_pool_t {
+	struct connection* pool;
+	list_t* free_list;
+	list_t* used_list;
+
+	uint32_t pool_size;
+	uint32_t max_pool_size;
+};
+
+struct connection_pool_t connection_pool;
 
 int connection_fill(struct connection* c, struct packet* p)
 {
@@ -53,6 +66,46 @@ int connection_fill(struct connection* c, struct packet* p)
 		fprintf(stderr, "connection_fill: Error, unkonwn packet type\n");
 		return -1;
 	}	
+	return 0;
+}
+
+int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size)
+{
+	uint32_t i;
+
+	connection_pool.pool_size = pool_size;
+	connection_pool.max_pool_size = max_pool_size;
+	connection_pool.pool = (struct connection*)malloc(sizeof(struct connection) * pool_size);
+
+	connection_pool.free_list = list_create();
+	connection_pool.used_list = list_create();
+
+	for (i = 0; i != pool_size; ++i) {
+		memset(&connection_pool.pool[i], 0, sizeof(struct connection));
+		struct list_element_t* e = (struct list_element_t*)malloc(sizeof(struct list_element_t));
+		e->data = &connection_pool.pool[i];
+		list_push_back(connection_pool.free_list, e);
+	}
+
+	return 0;
+}
+
+int connection_deinit_pool()
+{
+	free(connection_pool.pool);
+	
+
+	return 0;
+}
+
+struct connection* connection_new()
+{
+	
+	return NULL;
+}
+
+int connection_free(struct connection* c)
+{
 	return 0;
 }
 
