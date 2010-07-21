@@ -37,6 +37,7 @@ list_t* list_create()
 
 inline int list_destroy(list_t* list)
 {
+	/*
 	struct list_element_t *i, *j;
 	i = list->head;
 	while (i) {
@@ -44,6 +45,7 @@ inline int list_destroy(list_t* list)
 		free(i);
 		i = j;
 	}
+	*/
 	free(list);
 	return 0;
 }
@@ -129,4 +131,31 @@ inline struct list_element_t* list_pop_back(list_t* list)
 	return ret;
 }
 
+inline int list_delete_element(list_t* list, struct list_element_t* element)
+{
+	if (!list || !element || !list->size) {
+		return -1;
+	}
+
+	if (element == list->head) {
+		list->head = element->next;
+	} else if (element == list->tail) {
+		list->tail = element->prev;
+	}
+
+	if (element->next || element->prev) {
+		element->next->prev = element->prev;
+		element->prev->next = element->next;
+	} else if (element->next) {
+		element->next->prev = NULL;
+	} else if (element->prev) {
+		element->prev->next = NULL;
+	} else {
+		fprintf(stderr, "Logical error! You should never see this error message! We are doomed!\n");
+		exit(-1);
+	}
+	list->size--;
+	element->next = element->prev = NULL;
+	return 0;
+}
 

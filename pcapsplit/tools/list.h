@@ -41,5 +41,6 @@ inline int list_push_back(list_t* list, struct list_element_t* element);
 
 inline struct list_element_t* list_pop_front(list_t* list);
 inline struct list_element_t* list_pop_back(list_t* list);
+inline int list_delete_element(list_t* list, struct list_element_t* element);
 
 #endif
