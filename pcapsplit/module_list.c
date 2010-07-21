@@ -31,6 +31,8 @@ struct dumping_module* get_module(const char* name)
 		ret = filter_dumper_new();
 	} else if (strcmp(name, MAIN_NAME) == 0) {
 		// no module for main
+	} else if (strcmp(name, FLOWSTART_DUMPER_NAME) == 0) {
+		ret = flowstart_dumper_new();
 	}
 
 	return ret;
