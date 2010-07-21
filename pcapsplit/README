@@ -15,11 +15,49 @@ that pcapsplit uses to split the source file. Each of these modules does have
 its on section in within the files. The following modules are currently
 implemented:
 
-[size_dumper]
-file_prefix=/path/to/file/prefix
-size=size in bytes
+- sizedumper -- Splits a single pcap files into several smaller files. The
+  configuration for this module is given like this:
+
+	[size_dumper]
+	file_prefix=/path/to/file/prefix
+	size=size in bytes
+  
+  The resulting files will be no bigger than size "size". Some files might be
+  smaller because the split is only performed on a packet boundary. Packets
+  will not be splitted in the middle of the packet. 
+  If a big pcap file is splitted into n smaller files, the resulting output
+  files will be named $file_prefix.[0-n].
+
+- filterdumper -- Splits a single pcap files into several files according to
+  pcap filter rules. The configuration is performed as follows:
+
+	[filter_dumper]
+	file_prefix=/path/to/file/prefix
+	numer_of_classes=2
+
+	class1=ip
+	filter1="ip"
+
+	class2=ip6
+	filter2="ip6"
+
+  The configuration specifies an file prefix in the variable "file_prefix" and
+  the number of output classes in "number_of_classes". The variables "class"
+  and "filter" need to be existent for every class. For examle, if
+  "number_of_classes" is two, there must be the configuration variables
+  "class1", "filter1", "class2", "filter2". 
+  The string given in "classN" defines the filename of the output pcap file.
+  For example, the configuration
+
+	file_prefix='/foo/bar/pcap-'
+	class1 = 'ip'
+
+  will result in a pcap filen named '/foo/bar/pcap-ip'. Note that the
+  directory for the pcap file MUST exist because pcapsplit does not create any
+  directories. The variable "filterN" defines the pcap filter for the class N. 
+  The filter format must be in tcpdump(1) format.
 
 
-Please email bug reports, feature request,etc to
+Please email bug reports, feature requests, etc to
 
 	Lothar Braun <lothar@lobraun.de>
