@@ -19,7 +19,6 @@
 #include <netinet/udp.h>
 #include <stdlib.h>
 #include <string.h>
-#include <tools/list.h>
 		
 struct connection_pool_t {
 	struct connection* pool;
@@ -28,9 +27,11 @@ struct connection_pool_t {
 
 	uint32_t pool_size;
 	uint32_t max_pool_size;
+	uint32_t timeout;
 };
 
 struct connection_pool_t connection_pool;
+struct connection*  connections = NULL;
 
 int connection_fill(struct connection* c, struct packet* p)
 {
@@ -69,9 +70,10 @@ int connection_fill(struct connection* c, struct packet* p)
 	return 0;
 }
 
-int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size)
+int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t timeout)
 {
 	uint32_t i;
+	struct connection* c;
 
 	connection_pool.pool_size = pool_size;
 	connection_pool.max_pool_size = max_pool_size;
@@ -81,10 +83,11 @@ int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size)
 	connection_pool.used_list = list_create();
 
 	for (i = 0; i != pool_size; ++i) {
-		memset(&connection_pool.pool[i], 0, sizeof(struct connection));
-		struct list_element_t* e = (struct list_element_t*)malloc(sizeof(struct list_element_t));
-		e->data = &connection_pool.pool[i];
-		list_push_back(connection_pool.free_list, e);
+		c = &connection_pool.pool[i];
+		memset(c, 0, sizeof(struct connection));
+		c->element.data = c;
+		
+		list_push_back(connection_pool.free_list, &c->element);
 	}
 
 	return 0;
@@ -95,18 +98,26 @@ int connection_deinit_pool()
 	free(connection_pool.pool);
 	list_destroy(connection_pool.free_list);
 	list_destroy(connection_pool.used_list);
-
 	return 0;
 }
 
 struct connection* connection_new()
 {
+	struct list_element_t* t = list_pop_front(connection_pool.free_list);
+	struct connection* ret = t->data;
+	if (t) {
+		list_push_front(connection_pool.used_list, t);
+	} else {
+		// TODO: handle emtpy pool
+	}
 	
-	return NULL;
+	return ret;
 }
 
 int connection_free(struct connection* c)
 {
+	list_delete_element(connection_pool.used_list, &c->element);
+	memset(c, 0, sizeof(*c));
 	return 0;
 }
 

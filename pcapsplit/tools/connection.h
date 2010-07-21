@@ -20,6 +20,7 @@
 #include <netinet/in.h>
 #include <tools/uthash.h>
 #include <packet.h>
+#include <tools/list.h>
 
 struct connection_v4 {
 	uint32_t ip1;
@@ -45,14 +46,16 @@ typedef union {
 
 struct connection {
 	record_key_t key;
+	
+	struct list_element_t element;
+	
 	UT_hash_handle hh;
 };
 
-struct connection*  connections = NULL;
 
 int connection_fill(struct connection* c, struct packet* p);
 
-int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size);
+int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t timeout);
 int connection_deinit_pool();
 
 struct connection* connection_new();
