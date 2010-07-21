@@ -18,6 +18,7 @@
 
 #include <tools/list.h>
 #include <tools/pcap-tools.h>
+#include <tools/connection.h>
 #include <module_list.h>
 
 #include <stdlib.h>
@@ -42,6 +43,10 @@ struct flowstart_dumper_data {
 
 int flowstart_dumper_init(struct dumping_module* m, struct config* c)
 {
+	uint32_t conn_no = 0;
+	uint32_t conn_max = 0;
+	uint32_t flow_timeout = 0;
+
 	struct flowstart_dumper_data* sdata = (struct flowstart_dumper_data*)malloc(sizeof(struct flowstart_dumper_data));
 	if (!sdata) {
 		fprintf(stderr, "flowstart_dumper: Could not create flowstart dumper data: %s\n", strerror(errno));
@@ -51,6 +56,26 @@ int flowstart_dumper_init(struct dumping_module* m, struct config* c)
 	sdata->filter_list = classes_create(FLOWSTART_DUMPER_NAME, c, m->linktype);
 	if (!sdata->filter_list)
 		goto out2;
+
+	if (!config_get_option(c, FLOWSTART_DUMPER_NAME, "init_connection_pool")) {
+		fprintf(stderr, "flowstart_dumper: \"init_connection_pool\" missing in section %s\n", FLOWSTART_DUMPER_NAME);
+		goto out2;
+	}
+	conn_no = atoi(config_get_option(c, FLOWSTART_DUMPER_NAME, "init_connection_pool"));
+
+	if (!config_get_option(c, FLOWSTART_DUMPER_NAME, "max_connection_pool")) {
+		fprintf(stderr, "flowstart_dumper: \"max_connection_pool\" missing in section %s\n", FLOWSTART_DUMPER_NAME);
+		goto out2;
+	}
+	conn_max = atoi(config_get_option(c, FLOWSTART_DUMPER_NAME, "max_connection_pool"));
+
+	if (!config_get_option(c, FLOWSTART_DUMPER_NAME, "flow_timeout")) {
+		fprintf(stderr, "flowstart_dumper: \"flow_timeout\" missing in section %s\n", FLOWSTART_DUMPER_NAME);
+		goto out2;
+	}
+	flow_timeout = atoi(config_get_option(c, FLOWSTART_DUMPER_NAME, "flow_timeout"));
+
+	connection_init_pool(conn_no, conn_max, flow_timeout);
 
 	m->module_data = (void*)sdata;
 
@@ -96,3 +121,4 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 
 	return 0;
 }
+
