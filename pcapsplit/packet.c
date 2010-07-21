@@ -16,10 +16,6 @@
 #include "packet.h"
 #include <arpa/inet.h>
 
-#define ETHERNET(p) ((struct ether_header*)p)
-#define IP(p) (struct ip*)(p + ETHER_HDR_LEN)
-#define IP6(p) (struct ip6_hdr*)(p + ETHER_HDR_LEN)
-
 int packet_init(struct packet* p, struct pcap_pkthdr* header, const unsigned char* data)
 {
 	uint16_t et = ntohs(ETHERNET(data)->ether_type);

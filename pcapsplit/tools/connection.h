@@ -16,6 +16,40 @@
 #ifndef _CONNECTION_H_
 #define _CONNECTION_H_
 
-//struct connection
+#include <stdint.h>
+#include <netinet/in.h>
+#include <tools/uthash.h>
+#include <packet.h>
+
+struct connection_v4 {
+	uint32_t ip1;
+	uint32_t ip2;
+	uint16_t p1;
+	uint16_t p2;
+	uint8_t proto;
+};
+
+struct connection_v6 {
+	struct in6_addr ip1;
+	struct in6_addr ip2;
+	uint16_t p1;
+	uint16_t p2;
+	uint8_t proto;
+};
+
+typedef union {
+	struct connection_v4 c_v4;
+	struct connection_v4 c_v6;
+} record_key_t;
+
+
+struct connection {
+	record_key_t key;
+	UT_hash_handle hh;
+};
+
+struct connection*  connections = NULL;
+
+int connection_fill(struct connection* c, struct packet* p);
 
 #endif

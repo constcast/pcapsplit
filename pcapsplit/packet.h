@@ -27,6 +27,11 @@
 #include <netinet/udp.h>
 #include <netinet/tcp.h>
 
+#define ETHERNET(p) ((struct ether_header*)p)
+#define IP(p) (struct ip*)(p + ETHER_HDR_LEN)
+#define IP6(p) (struct ip6_hdr*)(p + ETHER_HDR_LEN)
+#define IP_HDR_LEN(ip)      (ip->ip_hl*4)
+
 struct packet {
 	struct pcap_pkthdr header;
 	const unsigned char* data;

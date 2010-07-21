@@ -1,5 +1,5 @@
 noinst_LIBRARIES = libtools.a
 
-libtools_a_SOURCES = list.h list.c uthash.h pcap-tools.h pcap-tools.c
+libtools_a_SOURCES = list.h list.c uthash.h pcap-tools.h pcap-tools.c connection.h connection.c
 
 AM_CFLAGS=-Wall -Werror -g -I$(top_srcdir)
