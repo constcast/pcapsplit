@@ -18,6 +18,7 @@
 #include "dumping_module.h"
 
 #include <stdlib.h>
+#include <tools/msg.h>
 
 struct config {
 	dictionary* d;
@@ -28,7 +29,7 @@ struct config* config_new(const char* file)
 	struct config* ret = (struct config*)malloc(sizeof(struct config));
 	ret->d = iniparser_new(file);
 	if (ret->d == NULL) {
-		fprintf(stderr, "Error parsing config file!\n");
+		msg(MSG_ERROR, "Error parsing config file!");
 		free(ret);
 		return NULL;
 	}
@@ -48,12 +49,12 @@ size_t config_get_module_names(struct config* config, const char** module_names)
 	int i;
 
 	if (count < 0) {
-		fprintf(stderr, "Error in config file detected!\n");
+		msg(MSG_ERROR, "Error in config file detected!");
 		return 0;
 	}
 
 	if (count > MAX_MODULES) {
-		fprintf(stderr, "Config file does contain more modules than allowed\n");
+		msg(MSG_ERROR, "Config file does contain more modules than allowed");
 		return 0;
 	}
 	for (i = 0; i != count; ++i) {

@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <tools/msg.h>
+
 int dumpers_init(struct dumpers* d)
 {
 	d->count = 0;
@@ -54,13 +56,13 @@ void dumpers_create_all(struct dumpers* d, struct config* c, int linktype, int s
 		}
 		struct dumping_module* m = get_module(module_names[i]);
 		if (m == NULL) {
-			fprintf(stderr, "No such module %s\n", module_names[i]);
+			msg(MSG_ERROR, "No such module %s", module_names[i]);
 			continue;
 		}
 		m->linktype = linktype;
 		m->snaplen = snaplen;
 		if (m->dinit(m, c) < 0) {
-			fprintf(stderr, "Failed to initialize module %s. Not adding module to dumper tree\n", module_names[i]);
+			msg(MSG_ERROR, "Failed to initialize module %s. Not adding module to dumper tree", module_names[i]);
 			continue;
 		}
 		dumpers_add(d, m);

@@ -20,6 +20,7 @@
 #include <errno.h>
 
 #include <tools/pcap-tools.h>
+#include <tools/msg.h>
 
 #define MAX_FILENAME 65535
 
@@ -37,13 +38,13 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
 
         ret = list_create();
         if (!ret) {
-                fprintf(stderr, "%s: Could not create list: %s\n", module_name, strerror(errno));
+                msg(MSG_ERROR, "%s: Could not create list: %s", module_name, strerror(errno));
                 goto out1;
         }
 
 
         if (!config_get_option(c, module_name, "number_of_classes")) {
-                fprintf(stderr, "%s: missing \"number_of_classes\". Cannot configure %s\n", module_name, module_name);
+                msg(MSG_ERROR, "%s: missing \"number_of_classes\". Cannot configure %s", module_name, module_name);
                 goto out2;
         } else {
                 class_count = atoi(config_get_option(c, module_name, "number_of_classes"));
@@ -51,7 +52,7 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
 
         prefix = config_get_option(c, module_name, "file_prefix");
         if (!prefix) {
-                fprintf(stderr, "%s: missing \"file_prefix\". Cannot configure %s\n", module_name, module_name);
+                msg(MSG_ERROR, "%s: missing \"file_prefix\". Cannot configure %s", module_name, module_name);
                 goto out2;
         }
 
@@ -63,20 +64,20 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
                 snprintf(conf_name, MAX_FILENAME, "class%d", class_no);
                 class_name = config_get_option(c, module_name, conf_name);
                 if (!class_name) {
-                        fprintf(stderr, "%s: could not find %s in config file!\n", module_name, conf_name);
+                        msg(MSG_ERROR, "%s: could not find %s in config file!", module_name, conf_name);
                         goto out2;
                 }
 
                 snprintf(conf_name, MAX_FILENAME, "filter%d", class_no);
                 filter_string = config_get_option(c, module_name, conf_name);
                 if (!filter_string) {
-                        fprintf(stderr, "%s: Could not find filter expression for class %s. Cannot recover from that!\n", module_name, class_name);
+                        msg(MSG_ERROR, "%s: Could not find filter expression for class %s. Cannot recover from that!", module_name, class_name);
                         goto out2;
                 }
                 struct list_element_t* le = (struct list_element_t*)malloc(sizeof(struct list_element_t));
                 struct class_t* f = (struct class_t*)malloc(sizeof(struct class_t));
                 if (-1 == pcap_compile(p, &f->filter_program, filter_string,  0, 0)) { // TODO: check whether optimize in pcap_compile could be usefull
-                        fprintf(stderr, "%s: Could not compile pcap filter %s: %s\n", module_name, filter_string, pcap_geterr(p));
+                        msg(MSG_ERROR, "%s: Could not compile pcap filter %s: %s", module_name, filter_string, pcap_geterr(p));
                         // TODO: cleanup this one, too 
                         goto out2;
                 }
@@ -85,7 +86,7 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
                 snprintf(pcap_file, MAX_FILENAME, "%s%s", prefix, class_name);
                 f->dumper = dumper_tool_open_file(pcap_file, linktype);
                 if (!f->dumper) {
-                        fprintf(stderr, "%s: Cannot open pcap file %s\n", module_name, pcap_file);
+                        msg(MSG_ERROR, "%s: Cannot open pcap file %s", module_name, pcap_file);
                         goto out2;
                 }
 

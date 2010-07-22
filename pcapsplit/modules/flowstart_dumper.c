@@ -19,6 +19,7 @@
 #include <tools/list.h>
 #include <tools/pcap-tools.h>
 #include <tools/connection.h>
+#include <tools/msg.h>
 #include <module_list.h>
 
 #include <stdlib.h>
@@ -49,7 +50,7 @@ int flowstart_dumper_init(struct dumping_module* m, struct config* c)
 
 	struct flowstart_dumper_data* sdata = (struct flowstart_dumper_data*)malloc(sizeof(struct flowstart_dumper_data));
 	if (!sdata) {
-		fprintf(stderr, "flowstart_dumper: Could not create flowstart dumper data: %s\n", strerror(errno));
+		msg(MSG_ERROR, "flowstart_dumper: Could not create flowstart dumper data: %s", strerror(errno));
 		goto out1;
 	}
 
@@ -58,19 +59,19 @@ int flowstart_dumper_init(struct dumping_module* m, struct config* c)
 		goto out2;
 
 	if (!config_get_option(c, FLOWSTART_DUMPER_NAME, "init_connection_pool")) {
-		fprintf(stderr, "flowstart_dumper: \"init_connection_pool\" missing in section %s\n", FLOWSTART_DUMPER_NAME);
+		msg(MSG_ERROR, "flowstart_dumper: \"init_connection_pool\" missing in section %s", FLOWSTART_DUMPER_NAME);
 		goto out2;
 	}
 	conn_no = atoi(config_get_option(c, FLOWSTART_DUMPER_NAME, "init_connection_pool"));
 
 	if (!config_get_option(c, FLOWSTART_DUMPER_NAME, "max_connection_pool")) {
-		fprintf(stderr, "flowstart_dumper: \"max_connection_pool\" missing in section %s\n", FLOWSTART_DUMPER_NAME);
+		msg(MSG_ERROR, "flowstart_dumper: \"max_connection_pool\" missing in section %s", FLOWSTART_DUMPER_NAME);
 		goto out2;
 	}
 	conn_max = atoi(config_get_option(c, FLOWSTART_DUMPER_NAME, "max_connection_pool"));
 
 	if (!config_get_option(c, FLOWSTART_DUMPER_NAME, "flow_timeout")) {
-		fprintf(stderr, "flowstart_dumper: \"flow_timeout\" missing in section %s\n", FLOWSTART_DUMPER_NAME);
+		msg(MSG_ERROR, "flowstart_dumper: \"flow_timeout\" missing in section %s", FLOWSTART_DUMPER_NAME);
 		goto out2;
 	}
 	flow_timeout = atoi(config_get_option(c, FLOWSTART_DUMPER_NAME, "flow_timeout"));
@@ -99,6 +100,7 @@ int flowstart_dumper_finish(struct dumping_module* m)
 	}
 	list_destroy(d->filter_list);
 	free(d);
+	connection_deinit_pool();
 	m->module_data = NULL;
 	return 0;
 }
@@ -117,7 +119,7 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 		i = i->next;
 	}
 
-	printf("Skipping packet!\n");
+	msg(MSG_INFO, "No matching filter for packet: Skipping packet!\n");
 
 	return 0;
 }

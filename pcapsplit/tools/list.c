@@ -16,15 +16,15 @@
 #include "list.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <tools/msg.h>
 
 list_t* list_create()
 {
 	list_t* ret = (list_t*)malloc(sizeof(list_t));
 	if (!ret) {
-		fprintf(stderr, "Could not allocate memory: %s\n", strerror(errno));
+		msg(MSG_ERROR, "Could not allocate memory: %s", strerror(errno));
 		return NULL;
 	}
 
@@ -151,7 +151,7 @@ inline int list_delete_element(list_t* list, struct list_element_t* element)
 	} else if (element->prev) {
 		element->prev->next = NULL;
 	} else {
-		fprintf(stderr, "Logical error! You should never see this error message! We are doomed!\n");
+		msg(MSG_FATAL, "Logical error! You should never see this error message! We are doomed!");
 		exit(-1);
 	}
 	list->size--;

@@ -18,6 +18,7 @@
 
 #include <tools/list.h>
 #include <tools/pcap-tools.h>
+#include <tools/msg.h>
 #include <module_list.h>
 
 #include <stdlib.h>
@@ -44,7 +45,7 @@ int filter_dumper_init(struct dumping_module* m, struct config* c)
 {
 	struct filter_dumper_data* sdata = (struct filter_dumper_data*)malloc(sizeof(struct filter_dumper_data));
 	if (!sdata) {
-		fprintf(stderr, "filter_dumper: Could not create filter dumper data: %s\n", strerror(errno));
+		msg(MSG_ERROR, "filter_dumper: Could not create filter dumper data: %s", strerror(errno));
 		goto out1;
 	}
 
@@ -92,7 +93,7 @@ int filter_dumper_run(struct dumping_module* m, struct packet* p)
 		i = i->next;
 	}
 
-	printf("Skipping packet!\n");
+	msg(MSG_INFO, "No matching filter for packet: Skipping packet!");
 
 	return 0;
 }

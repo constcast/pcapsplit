@@ -19,6 +19,7 @@
 #include <netinet/udp.h>
 #include <stdlib.h>
 #include <string.h>
+#include <tools/msg.h>
 		
 struct connection_pool_t {
 	struct connection* pool;
@@ -64,7 +65,7 @@ int connection_fill(struct connection* c, struct packet* p)
 	} else if (p->is_ip6) {
 		// TOOD handle IPv6. This is relevant!
 	} else {
-		fprintf(stderr, "connection_fill: Error, unkonwn packet type\n");
+		msg(MSG_ERROR, "connection_fill: Error, unkonwn packet type\n");
 		return -1;
 	}	
 	return 0;

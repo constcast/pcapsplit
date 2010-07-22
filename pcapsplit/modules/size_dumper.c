@@ -17,6 +17,7 @@
 
 #include <module_list.h>
 #include <tools/pcap-tools.h>
+#include <tools/msg.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -61,7 +62,7 @@ int size_dumper_init(struct dumping_module* m, struct config* c)
 
 	const char* tmp = config_get_option(c, SIZE_DUMPER_NAME, "file_prefix");
 	if (tmp == NULL) {
-		fprintf(stderr, "%s: no filename in config file\n", SIZE_DUMPER_NAME);
+		msg(MSG_ERROR, "%s: no filename in config file", SIZE_DUMPER_NAME);
 		return -1;
 	}
 	strncpy(sdata->base_filename, tmp, MAX_FILENAME);
@@ -71,7 +72,7 @@ int size_dumper_init(struct dumping_module* m, struct config* c)
 	
 	tmp = config_get_option(c, SIZE_DUMPER_NAME, "size");
 	if (tmp == NULL) {
-		fprintf(stderr, "%s: no file size in config file\n", "size");
+		msg(MSG_ERROR, "%s: no file size in config file", "size");
 		return -1;
 	}
 	sdata->max_file_data_count = atoi(tmp);

@@ -17,10 +17,11 @@
 #include "dumping_module.h"
 #include "conf.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <libgen.h>
+
+#include <tools/msg.h>
 
 #include <pcap.h>
 
@@ -40,18 +41,20 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
+	msg_setlevel(MSG_INFO);
+
 	struct dumpers dumps;
 	dumpers_init(&dumps);
 
 	struct config* conf = config_new(argv[2]);
 	if (!conf) {
-		fprintf(stderr, "Invalid config. Abort!\n");
+		msg(MSG_ERROR, "Invalid config. Abort!");
 		return 0;
 	}
 
 	pcap_t* pfile = pcap_open_offline(argv[1], errorBuffer); 
 	if (!pfile) {
-		fprintf(stderr, "Cannot open %s: %s\n", argv[1], errorBuffer);
+		msg(MSG_ERROR, "Cannot open %s: %s", argv[1], errorBuffer);
 		return -1;
 	}
 

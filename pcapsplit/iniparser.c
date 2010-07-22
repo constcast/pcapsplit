@@ -36,6 +36,8 @@
 #include <unistd.h>
 #include <ctype.h>
 
+#include <tools/msg.h>
+
 #include "iniparser.h"
 
 #ifdef __cplusplus
@@ -645,7 +647,7 @@ const char * iniparser_getvalue(dictionary *d, const char *section, const char *
 	snprintf(tmp, ASCIILINESZ, "%s:%s", section, key);
 
         if(!(ret=iniparser_getstring(d, tmp, NULL))) {
-                fprintf(stderr, "iniparser: value is NULL, maybe looking for wrong key? Section: %s, key: %s\n", section, key);
+                msg(MSG_ERROR, "iniparser: value is NULL, maybe looking for wrong key? Section: %s, key: %s", section, key);
         }
 
         return ret;
