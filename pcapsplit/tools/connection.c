@@ -127,8 +127,13 @@ struct connection* connection_new(const struct packet* p)
 
 int connection_free(struct connection* c)
 {
+	HASH_FIND(hh, connections, &c->key, sizeof(record_key_t), found_conn);
+	if (found_conn) {
+		HASH_DEL(connections, c);
+	}
 	list_delete_element(connection_pool.used_list, &c->element);
 	memset(c, 0, sizeof(*c));
+	list_push_back(connection_pool.free_list, &c->element);
 	return 0;
 }
 
@@ -145,5 +150,5 @@ struct connection* connection_get(const struct packet* p)
 		key_fill(&found_conn->key, p);
 		HASH_ADD(hh, connections, key, sizeof(record_key_t), found_conn);
 	}
-	return NULL;
+	return found_conn;
 }

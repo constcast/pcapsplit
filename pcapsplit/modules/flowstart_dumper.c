@@ -140,10 +140,19 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 	return 0;
 }
 
-int fd_handle_packet(struct class_t* c, struct packet* p)
+int fd_handle_packet(struct class_t* class, struct packet* p)
 {
-	connection_get(p);
-	//dumper_tool_dump(c->dumper , &p->header, p->data);
+	struct connection* c = connection_get(p);
+	if (!c) {
+		msg(MSG_FATAL, "Something is fucked up: Did not get a connection object! You should never see this message.");
+	}
+	c->last_seen = p->header.ts.tv_sec;
+	if (c->traffic_seen <= class->cutoff) {
+		c->traffic_seen += p->header.len;
+		dumper_tool_dump(class->dumper , &p->header, p->data);
+	} else {
+		//connection_free(c);
+	}
 
 	return 0;
 }
