@@ -143,13 +143,15 @@ inline int list_delete_element(list_t* list, struct list_element_t* element)
 		list->tail = element->prev;
 	}
 
-	if (element->next || element->prev) {
+	if (element->next && element->prev) {
 		element->next->prev = element->prev;
 		element->prev->next = element->next;
 	} else if (element->next) {
 		element->next->prev = NULL;
 	} else if (element->prev) {
 		element->prev->next = NULL;
+	} else  if (list->size == 1) {
+
 	} else {
 		msg(MSG_FATAL, "Logical error! You should never see this error message! We are doomed!");
 		exit(-1);
