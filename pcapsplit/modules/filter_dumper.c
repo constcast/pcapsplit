@@ -99,9 +99,9 @@ int filter_dumper_run(struct dumping_module* m, struct packet* p)
 
 	struct list_element_t* i = d->filter_list->head;
 	while (i)  {
-		struct class_t* f = (struct class_t*)i->data;
-		if (bpf_filter(f->filter_program.bf_insns, (u_char*)p->data, p->header.len, p->header.caplen)) {
-			dumper_tool_dump(f->dumper , &p->header, p->data);
+		struct class_t* c = (struct class_t*)i->data;
+		if (bpf_filter(c->filter_program.bf_insns, (u_char*)p->data, p->header.len, p->header.caplen)) {
+			dumper_tool_dump(c->dumper , &p->header, p->data);
 			return 0;
 		}
 		i = i->next;
@@ -111,3 +111,5 @@ int filter_dumper_run(struct dumping_module* m, struct packet* p)
 
 	return 0;
 }
+
+

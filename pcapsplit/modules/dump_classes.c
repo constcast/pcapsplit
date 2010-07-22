@@ -29,10 +29,12 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
         list_t* ret;
         uint32_t class_no;
         uint32_t class_count;
+	uint32_t cutoff;
         char conf_name[MAX_FILENAME];
         const char* class_name;
         const char* filter_string;
         const char* prefix;
+	const char* tmp;
 	pcap_t* p;
 
         ret = list_create();
@@ -72,6 +74,14 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
                         msg(MSG_ERROR, "%s: Could not find filter expression for class %s. Cannot recover from that!", module_name, class_name);
                         goto out2;
                 }
+
+		tmp = config_get_option(c, module_name, "cutoff");
+		if (!tmp) {
+			cutoff = 0;
+		} else {
+			cutoff = atoi(tmp);
+		}
+		
                 struct list_element_t* le = (struct list_element_t*)malloc(sizeof(struct list_element_t));
                 struct class_t* f = (struct class_t*)malloc(sizeof(struct class_t));
                 if (-1 == pcap_compile(p, &f->filter_program, filter_string,  0, 0)) { // TODO: check whether optimize in pcap_compile could be usefull
@@ -82,6 +92,7 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
 
                	f->prefix = prefix;
 		f->class_name = class_name;
+		f->cutoff = cutoff;
 
                 le->data = f;
                 list_push_back(ret, le);

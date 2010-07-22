@@ -29,6 +29,8 @@
 
 #define MAX_FILENAME 65535
 
+int fd_handle_packet(struct class_t* t, struct packet* p);
+
 struct dumping_module* flowstart_dumper_new()
 {
 	struct dumping_module* ret = (struct dumping_module*)malloc(sizeof(struct dumping_module));
@@ -126,16 +128,22 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 
 	struct list_element_t* i = d->filter_list->head;
 	while (i)  {
-		struct class_t* f = (struct class_t*)i->data;
-		if (bpf_filter(f->filter_program.bf_insns, (u_char*)p->data, p->header.len, p->header.caplen)) {
-			dumper_tool_dump(f->dumper , &p->header, p->data);
-			return 0;
+		struct class_t* c = (struct class_t*)i->data;
+		if (bpf_filter(c->filter_program.bf_insns, (u_char*)p->data, p->header.len, p->header.caplen)) {
+			return fd_handle_packet(c, p);
 		}
 		i = i->next;
 	}
 
-	msg(MSG_INFO, "No matching filter for packet: Skipping packet!");
+	//msg(MSG_INFO, "No matching filter for packet: Skipping packet!");
 
 	return 0;
 }
 
+int fd_handle_packet(struct class_t* c, struct packet* p)
+{
+	connection_get(p);
+	//dumper_tool_dump(c->dumper , &p->header, p->data);
+
+	return 0;
+}
