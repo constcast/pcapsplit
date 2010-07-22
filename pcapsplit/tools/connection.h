@@ -48,17 +48,18 @@ struct connection {
 	record_key_t key;
 	
 	struct list_element_t element;
+
+	time_t last_seen;
+	uint32_t traffic_seen;
 	
 	UT_hash_handle hh;
 };
 
 
-int connection_fill(struct connection* c, struct packet* p);
-
 int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t timeout);
 int connection_deinit_pool();
 
-struct connection* connection_new();
+struct connection* connection_get(const struct packet* p);
 int connection_free(struct connection*);
 
 #endif

@@ -16,6 +16,8 @@
 #include "packet.h"
 #include <arpa/inet.h>
 
+#include <tools/msg.h>
+
 int packet_init(struct packet* p, struct pcap_pkthdr* header, const unsigned char* data)
 {
 	uint16_t et = ntohs(ETHERNET(data)->ether_type);
@@ -30,14 +32,14 @@ int packet_init(struct packet* p, struct pcap_pkthdr* header, const unsigned cha
 	p->data = data;
 	uint8_t  offset = et == ETHERTYPE_VLAN?4:0; // ethernetheader is shifted by four bytes if vlan is available
 	// we don't know whether we received ip or ipv6. So lets try:
-	if ((IP(data + offset))->ip_hl == 4 || et == ETHERTYPE_IP) {
+	if ((IP(data + offset))->ip_v == 4 || et == ETHERTYPE_IP) {
 		p->is_ip6 = 0;
-		p->ip =  IP(p);
+		p->ip =  IP(data);
 		p->ip6 = NULL;
-	} else if ((IP(data + offset))->ip_hl == 6 || et == ETHERTYPE_IPV6) {
+	} else if ((IP(data + offset))->ip_v == 6 || et == ETHERTYPE_IPV6) {
 		p->is_ip6 = 1;
 		p->ip = NULL;
-		p->ip6 = IP6(p);
+		p->ip6 = IP6(data);
 	} 
 
 	return 0;

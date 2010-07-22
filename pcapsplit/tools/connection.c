@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <tools/msg.h>
+
+#include <arpa/inet.h>
 		
 struct connection_pool_t {
 	struct connection* pool;
@@ -33,9 +35,12 @@ struct connection_pool_t {
 
 struct connection_pool_t connection_pool;
 struct connection*  connections = NULL;
+struct connection lookup_conn;
+struct connection* found_conn;
 
-int connection_fill(struct connection* c, struct packet* p)
+int key_fill(record_key_t* key, const struct packet* p)
 {
+	memset(key, 0, sizeof(*key));
 	if (p->is_ip) {
 		uint16_t sport, dport;
 		sport = dport = 0;
@@ -43,29 +48,32 @@ int connection_fill(struct connection* c, struct packet* p)
 
 		// TOOD: Handle SCTP. Is this relevant?
 		if (ip->ip_p == IPPROTO_TCP) {
-			struct tcphdr* tcp = (struct tcphdr*)(ip + IP_HDR_LEN(ip));
+			struct tcphdr* tcp = (struct tcphdr*)((uint8_t*)ip + (uint8_t)IP_HDR_LEN(ip));
 			sport = tcp->th_sport;
 			dport = tcp->th_dport;
 		} else if (ip->ip_p == IPPROTO_UDP) {
-			struct udphdr* udp = (struct udphdr*)(ip + IP_HDR_LEN(ip));
+			struct udphdr* udp = (struct udphdr*)((uint8_t*)ip + (uint8_t)IP_HDR_LEN(ip));
 			sport = udp->uh_sport;
 			dport = udp->uh_dport;
 		}
 		if (ip->ip_src.s_addr < ip->ip_dst.s_addr) {
-			c->key.c_v4.ip1 = ip->ip_src.s_addr;
-			c->key.c_v4.ip2 = ip->ip_dst.s_addr;
-			c->key.c_v4.p1  = sport;
-			c->key.c_v4.p2  = dport; 
+			key->c_v4.ip1 = ip->ip_src.s_addr;
+			key->c_v4.ip2 = ip->ip_dst.s_addr;
+			key->c_v4.p1  = sport;
+			key->c_v4.p2  = dport; 
 		} else {
-			c->key.c_v4.ip1 = ip->ip_dst.s_addr;
-			c->key.c_v4.ip2 = ip->ip_src.s_addr;
-			c->key.c_v4.p1  = dport;
-			c->key.c_v4.p2  = sport;
+			key->c_v4.ip1 = ip->ip_dst.s_addr;
+			key->c_v4.ip2 = ip->ip_src.s_addr;
+			key->c_v4.p1  = dport;
+			key->c_v4.p2  = sport;
 		}
+		key->c_v4.proto = ip->ip_p;
+		//msg(MSG_ERROR, "%d %d %d %d %d", key->c_v4.ip1, key->c_v4.ip2, key->c_v4.p1, key->c_v4.p2, key->c_v4.proto);
 	} else if (p->is_ip6) {
 		// TOOD handle IPv6. This is relevant!
 	} else {
-		msg(MSG_ERROR, "connection_fill: Error, unkonwn packet type\n");
+		// We do not care at the moment
+		//msg(MSG_ERROR, "connection_fill: Error, unkonwn packet type");
 		return -1;
 	}	
 	return 0;
@@ -82,6 +90,8 @@ int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t ti
 
 	connection_pool.free_list = list_create();
 	connection_pool.used_list = list_create();
+	
+	
 
 	for (i = 0; i != pool_size; ++i) {
 		c = &connection_pool.pool[i];
@@ -102,7 +112,7 @@ int connection_deinit_pool()
 	return 0;
 }
 
-struct connection* connection_new()
+struct connection* connection_new(const struct packet* p)
 {
 	struct list_element_t* t = list_pop_front(connection_pool.free_list);
 	struct connection* ret = t->data;
@@ -122,3 +132,18 @@ int connection_free(struct connection* c)
 	return 0;
 }
 
+struct connection* connection_get(const struct packet* p)
+{
+	key_fill(&lookup_conn.key, p);
+	
+	HASH_FIND(hh, connections, &lookup_conn.key, sizeof(record_key_t), found_conn);
+	if (found_conn) {
+		//msg(MSG_ERROR, "Found connection");
+	} else {
+		msg(MSG_ERROR, "New connection");
+		found_conn = connection_new(p);
+		key_fill(&found_conn->key, p);
+		HASH_ADD(hh, connections, key, sizeof(record_key_t), found_conn);
+	}
+	return NULL;
+}
