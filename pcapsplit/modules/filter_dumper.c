@@ -43,6 +43,7 @@ struct filter_dumper_data {
 
 int filter_dumper_init(struct dumping_module* m, struct config* c)
 {
+	char pcap_file[MAX_FILENAME];
 	struct filter_dumper_data* sdata = (struct filter_dumper_data*)malloc(sizeof(struct filter_dumper_data));
 	if (!sdata) {
 		msg(MSG_ERROR, "filter_dumper: Could not create filter dumper data: %s", strerror(errno));
@@ -52,6 +53,19 @@ int filter_dumper_init(struct dumping_module* m, struct config* c)
 	sdata->filter_list = classes_create(FILTER_DUMPER_NAME, c, m->linktype);
 	if (!sdata->filter_list)
 		goto out2;
+
+	struct list_element_t* i = sdata->filter_list->head;
+	while (i) {
+		struct class_t* t = i->data;
+		snprintf(pcap_file, MAX_FILENAME, "%s%s", t->prefix, t->class_name);
+		t->dumper = dumper_tool_open_file(pcap_file, m->linktype);
+		if (!t->dumper) {
+			msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
+			goto out2;
+		}
+		
+		i = i->next;
+	}
 
 	m->module_data = (void*)sdata;
 

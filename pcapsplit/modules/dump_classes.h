@@ -19,10 +19,14 @@
 #include <pcap.h>
 #include <tools/list.h>
 #include <conf.h>
+#include <stdint.h>
 
 struct class_t {
         struct bpf_program filter_program;
-        struct dumper_tool* dumper;
+	const char* prefix;
+	const char* class_name;
+	uint32_t cutoff;
+	struct dumper_tool* dumper;
 };
 
 list_t* classes_create(const char* module_name, struct config* c, int linktype);

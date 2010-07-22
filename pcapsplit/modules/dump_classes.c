@@ -32,7 +32,6 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
         char conf_name[MAX_FILENAME];
         const char* class_name;
         const char* filter_string;
-        char pcap_file[MAX_FILENAME];
         const char* prefix;
 	pcap_t* p;
 
@@ -41,7 +40,6 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
                 msg(MSG_ERROR, "%s: Could not create list: %s", module_name, strerror(errno));
                 goto out1;
         }
-
 
         if (!config_get_option(c, module_name, "number_of_classes")) {
                 msg(MSG_ERROR, "%s: missing \"number_of_classes\". Cannot configure %s", module_name, module_name);
@@ -82,13 +80,8 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
                         goto out2;
                 }
 
-                // open pcap file
-                snprintf(pcap_file, MAX_FILENAME, "%s%s", prefix, class_name);
-                f->dumper = dumper_tool_open_file(pcap_file, linktype);
-                if (!f->dumper) {
-                        msg(MSG_ERROR, "%s: Cannot open pcap file %s", module_name, pcap_file);
-                        goto out2;
-                }
+               	f->prefix = prefix;
+		f->class_name = class_name;
 
                 le->data = f;
                 list_push_back(ret, le);

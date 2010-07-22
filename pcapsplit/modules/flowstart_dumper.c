@@ -47,6 +47,7 @@ int flowstart_dumper_init(struct dumping_module* m, struct config* c)
 	uint32_t conn_no = 0;
 	uint32_t conn_max = 0;
 	uint32_t flow_timeout = 0;
+	char pcap_file[MAX_FILENAME];
 
 	struct flowstart_dumper_data* sdata = (struct flowstart_dumper_data*)malloc(sizeof(struct flowstart_dumper_data));
 	if (!sdata) {
@@ -77,6 +78,20 @@ int flowstart_dumper_init(struct dumping_module* m, struct config* c)
 	flow_timeout = atoi(config_get_option(c, FLOWSTART_DUMPER_NAME, "flow_timeout"));
 
 	connection_init_pool(conn_no, conn_max, flow_timeout);
+
+	struct list_element_t* i = sdata->filter_list->head;
+	while (i) {
+		struct class_t* t = i->data;
+		snprintf(pcap_file, MAX_FILENAME, "%s%s", t->prefix, t->class_name);
+		t->dumper = dumper_tool_open_file(pcap_file, m->linktype);
+		if (!t->dumper) {
+			msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
+			goto out2;
+		}
+		
+		i = i->next;
+	}
+
 
 	m->module_data = (void*)sdata;
 
@@ -119,7 +134,7 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 		i = i->next;
 	}
 
-	msg(MSG_INFO, "No matching filter for packet: Skipping packet!\n");
+	msg(MSG_INFO, "No matching filter for packet: Skipping packet!");
 
 	return 0;
 }
