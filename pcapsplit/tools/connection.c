@@ -82,6 +82,7 @@ int key_fill(record_key_t* key, const struct packet* p)
 
 void connection_reset_counters(struct connection* c)
 {
+	memset(&c->key, 0, sizeof(c->key));
 	c->last_seen = 0;
 	c->traffic_seen = 0;
 }
@@ -164,7 +165,7 @@ int connection_free(struct connection* c)
 		HASH_DEL(connections, c);
 	}
 	list_delete_element(connection_pool.used_list, &c->element);
-	memset(c, 0, sizeof(*c));
+	connection_reset_counters(c);
 	list_push_back(connection_pool.free_list, &c->element);
 	return 0;
 }
