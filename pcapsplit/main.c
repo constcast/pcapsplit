@@ -15,6 +15,7 @@
 
 #include "packet.h"
 #include "dumping_module.h"
+#include "module_list.h"
 #include "conf.h"
 
 #include <stdlib.h>
@@ -30,44 +31,97 @@
 void usage(char* progname)
 {
 	fprintf(stderr, "\n%s version %s\n\n", basename(progname), VERSION);
-	fprintf(stderr, "Usage: %s <pcapfile> <config-file>\n\n", basename(progname));
+	fprintf(stderr, "Usage: %s <config-file>\n\n", basename(progname));
+}
+
+pcap_t* open_pcap(const char* name, int is_interface) 
+{
+	char errorBuffer[PCAP_ERRBUF_SIZE];
+	pcap_t* pfile;
+	if (is_interface) {
+		// TODO: we might want to configure this? do we?
+		pfile = pcap_open_live(name, 65535, 0, 0, errorBuffer);
+	} else {
+		pfile = pcap_open_offline(name, errorBuffer); 
+	}
+	if (!pfile) {
+		msg(MSG_ERROR, "Cannot open %s: %s", name, errorBuffer);
+		exit(-1);
+	}
+	return pfile;
 }
 
 int main(int argc, char** argv)
 {
-	char errorBuffer[PCAP_ERRBUF_SIZE];
-	if (argc != 3) {
+	const char* pcap_file;
+	const char* capture_interface;
+	int is_live = 0;
+	int running = 1;
+
+	if (argc != 2) {
 		usage(argv[0]);
 		return -1;
 	}
 
 	msg_setlevel(MSG_INFO);
+	msg(MSG_INFO, "%s is initializing ...", argv[0]);
 
 	struct dumpers dumps;
 	dumpers_init(&dumps);
 
-	struct config* conf = config_new(argv[2]);
+	struct config* conf = config_new(argv[1]);
 	if (!conf) {
 		msg(MSG_ERROR, "Invalid config. Abort!");
 		return 0;
 	}
 
-	pcap_t* pfile = pcap_open_offline(argv[1], errorBuffer); 
-	if (!pfile) {
-		msg(MSG_ERROR, "Cannot open %s: %s", argv[1], errorBuffer);
-		return -1;
-	}
+	pcap_file = config_get_option(conf, MAIN_NAME, "pcapfile");
+	capture_interface = config_get_option(conf, MAIN_NAME, "interface");
 
-	dumpers_create_all(&dumps, conf, pcap_datalink(pfile), 65535);
+	if (!pcap_file && !capture_interface) {
+		msg(MSG_FATAL, "main: Neither \"pcapfile\" nor \"interface\" given in config file.");
+		exit(-1);
+	} if (pcap_file && capture_interface) {
+		msg(MSG_FATAL, "main: Got \'pcapfile\" *and* \"interface\". Please decide whether you want to work on- or offline!");
+		exit(-1);
+	}
+	
+	pcap_t* pfile;
+	if (pcap_file) { 
+		pfile = open_pcap(pcap_file, 0); 
+		dumpers_create_all(&dumps, conf, pcap_datalink(pfile), 65535);
+	} else {
+		is_live = 1;
+		pfile = open_pcap(capture_interface, 1);
+		dumpers_create_all(&dumps, conf, pcap_datalink(pfile), 65535);
+		// the dumper creating can take a significant amount of time.
+		// We could not read any packets during this initialization phase and 
+		// could therefore drop a significant amount of packets (depending on
+		// the link speed). We therefore close and reopen the pcap descriptor
+		// in order to reset the statistics and get more accurate packet
+		// drop statistice (we had to open the pcap interface for retrieving the
+		// interface link type which is important for module initialization
+		pcap_close(pfile);
+		pfile = open_pcap(capture_interface, 1);
+	}
+	msg(MSG_INFO, "%s is up and running. Starting to consume packets ...", argv[0]);
 
 	struct packet p;
 	int i;
-	while (NULL != (p.data = pcap_next(pfile, &p.header))) {
-		packet_init(&p, &p.header, p.data);
-		for (i = 0; i != dumps.count; ++i) {
-			dumps.modules[i]->dfunc(dumps.modules[i], &p);
+	while (running) {
+
+		if (NULL != (p.data = pcap_next(pfile, &p.header))) {
+			packet_init(&p, &p.header, p.data);
+			for (i = 0; i != dumps.count; ++i) {
+				dumps.modules[i]->dfunc(dumps.modules[i], &p);
+			}
+		} else {
+			if (!is_live)
+				running = 1;
 		}
 	}
+
+	msg(MSG_INFO, "%s finished reading packets ...", argv[0]);
 
 	dumpers_finish(&dumps);
 	config_free(conf);

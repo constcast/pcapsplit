@@ -137,7 +137,7 @@ struct connection* connection_new(const struct packet* p)
 
 		ret = last->data;
 		if (ret->last_seen > current_time) {
-			msg(MSG_FATAL, "Whaaa! Something is fucked up in our timeing!");
+			msg(MSG_FATAL, "Whaaa! Something is fucked up in our timing!");
 			exit(-1);
 		} else if ((current_time - ret->last_seen) > connection_pool.timeout) {
 			// Cool! we can reuse the connection as it timed out!
