@@ -34,6 +34,16 @@ void usage(char* progname)
 	fprintf(stderr, "Usage: %s <config-file>\n\n", basename(progname));
 }
 
+static void print_stats(pcap_t* pcap, uint64_t packets_captured) 
+{
+	struct pcap_stat stat;
+	if (0 > pcap_stats(pcap, &stat)) {
+		msg(MSG_INFO, "Could not get pcap stats!");
+		return;
+	}
+	msg(MSG_INFO, "%llu packets captured, %llu received by filter, %llu dropped by kernel", packets_captured, stat.ps_recv, stat.ps_drop);
+}
+
 pcap_t* open_pcap(const char* name, int is_interface) 
 {
 	char errorBuffer[PCAP_ERRBUF_SIZE];
@@ -108,9 +118,16 @@ int main(int argc, char** argv)
 
 	struct packet p;
 	int i;
+	time_t last_stats = 0;
+	time_t stats_interval = 10;
+	uint64_t captured = 0;
 	while (running) {
-
 		if (NULL != (p.data = pcap_next(pfile, &p.header))) {
+			captured++;
+			if (p.header.ts.tv_sec - last_stats > stats_interval && is_live) {
+				last_stats = p.header.ts.tv_sec;
+				print_stats(pfile, captured);
+			}
 			packet_init(&p, &p.header, p.data);
 			for (i = 0; i != dumps.count; ++i) {
 				dumps.modules[i]->dfunc(dumps.modules[i], &p);
