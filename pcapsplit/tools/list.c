@@ -139,7 +139,8 @@ inline int list_delete_element(list_t* list, struct list_element_t* element)
 
 	if (element == list->head) {
 		list->head = element->next;
-	} else if (element == list->tail) {
+	} 
+	if (element == list->tail) {
 		list->tail = element->prev;
 	}
 
