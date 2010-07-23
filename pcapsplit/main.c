@@ -40,7 +40,7 @@ pcap_t* open_pcap(const char* name, int is_interface)
 	pcap_t* pfile;
 	if (is_interface) {
 		// TODO: we might want to configure this? do we?
-		pfile = pcap_open_live(name, 65535, 0, 0, errorBuffer);
+		pfile = pcap_open_live(name, 65535, 1, 0, errorBuffer);
 	} else {
 		pfile = pcap_open_offline(name, errorBuffer); 
 	}
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 			}
 		} else {
 			if (!is_live)
-				running = 1;
+				running = 0;
 		}
 	}
 
