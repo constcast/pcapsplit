@@ -173,12 +173,16 @@ struct connection* connection_get(const struct packet* p)
 	
 	HASH_FIND(hh, connections, &lookup_conn.key, sizeof(record_key_t), found_conn);
 	if (found_conn) {
+		found_conn->last_seen = p->header.ts.tv_sec;
 		//msg(MSG_ERROR, "Found connection");
 	} else {
 		//msg(MSG_ERROR, "New connection");
 		found_conn = connection_new(p);
-		key_fill(&found_conn->key, p);
-		HASH_ADD(hh, connections, key, sizeof(record_key_t), found_conn);
+		if (found_conn) {
+			found_conn->last_seen = p->header.ts.tv_sec;
+			key_fill(&found_conn->key, p);
+			HASH_ADD(hh, connections, key, sizeof(record_key_t), found_conn);
+		}
 	}
 	return found_conn;
 }
