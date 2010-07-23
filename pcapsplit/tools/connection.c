@@ -71,9 +71,10 @@ int key_fill(record_key_t* key, const struct packet* p)
 		//msg(MSG_ERROR, "%d %d %d %d %d", key->c_v4.ip1, key->c_v4.ip2, key->c_v4.p1, key->c_v4.p2, key->c_v4.proto);
 	} else if (p->is_ip6) {
 		// TOOD handle IPv6. This is relevant!
+		msg(MSG_FATAL, "This is IPv6 and not yet implemented");
 	} else {
 		// We do not care at the moment
-		//msg(MSG_ERROR, "connection_fill: Error, unkonwn packet type");
+		//msg(MSG_ERROR, "connection_fill: Error, unkonwn packet type: ");
 		return -1;
 	}	
 	return 0;
@@ -157,6 +158,7 @@ struct connection* connection_new(const struct packet* p)
 
 int connection_free(struct connection* c)
 {
+	msg(MSG_ERROR, "jasldkfjasdklfjsdakl");
 	HASH_FIND(hh, connections, &c->key, sizeof(record_key_t), found_conn);
 	if (found_conn) {
 		HASH_DEL(connections, c);
@@ -170,17 +172,19 @@ int connection_free(struct connection* c)
 struct connection* connection_get(const struct packet* p)
 {
 	key_fill(&lookup_conn.key, p);
+	//msg(MSG_ERROR, "New connection: %d %d %d %d", lookup_conn.key.c_v4.ip1, lookup_conn.key.c_v4.ip2, lookup_conn.key.c_v4.p1, lookup_conn.key.c_v4.p2);
 	
 	HASH_FIND(hh, connections, &lookup_conn.key, sizeof(record_key_t), found_conn);
 	if (found_conn) {
 		found_conn->last_seen = p->header.ts.tv_sec;
+		//msg(MSG_ERROR, "New connection: %d %d %d %d", found_conn->key.c_v4.ip1, found_conn->key.c_v4.ip2, found_conn->key.c_v4.p1, found_conn->key.c_v4.p2);
 		//msg(MSG_ERROR, "Found connection");
 	} else {
-		//msg(MSG_ERROR, "New connection");
 		found_conn = connection_new(p);
 		if (found_conn) {
 			found_conn->last_seen = p->header.ts.tv_sec;
 			key_fill(&found_conn->key, p);
+		//msg(MSG_ERROR, "New connection: %d %d %d %d", found_conn->key.c_v4.ip1, found_conn->key.c_v4.ip2, found_conn->key.c_v4.p1, found_conn->key.c_v4.p2);
 			HASH_ADD(hh, connections, key, sizeof(record_key_t), found_conn);
 		}
 	}

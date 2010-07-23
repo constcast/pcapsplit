@@ -26,6 +26,7 @@ int packet_init(struct packet* p, struct pcap_pkthdr* header, const unsigned cha
 		p->is_ip = p->is_ip6 = 0;
 		p->ip =  NULL;
 		p->ip6 = NULL;
+		//msg(MSG_ERROR, "Unknown packet type: %d. What is it?", et);
 		return 0;
 	}
 
@@ -34,13 +35,19 @@ int packet_init(struct packet* p, struct pcap_pkthdr* header, const unsigned cha
 	// we don't know whether we received ip or ipv6. So lets try:
 	if ((IP(data + offset))->ip_v == 4 || et == ETHERTYPE_IP) {
 		p->is_ip6 = 0;
+		p->is_ip  = 1;
 		p->ip =  IP(data);
 		p->ip6 = NULL;
+		//msg(MSG_ERROR, "Found IPv4 packet");
 	} else if ((IP(data + offset))->ip_v == 6 || et == ETHERTYPE_IPV6) {
 		p->is_ip6 = 1;
+		p->is_ip  = 0;
 		p->ip = NULL;
 		p->ip6 = IP6(data);
-	} 
+		//msg(MSG_ERROR, "Found IPv6 packet");
+	} else {
+		//msg(MSG_ERROR, "Well. Something is weird here!: Ethertype: %d, IP vesrsion: %d", et, (IP(data + offset))->ip_v);
+	}
 
 	return 0;
 }
