@@ -41,7 +41,8 @@ static void print_stats(pcap_t* pcap, uint64_t packets_captured)
 		msg(MSG_INFO, "Could not get pcap stats!");
 		return;
 	}
-	msg(MSG_INFO, "%llu packets captured, %llu received by filter, %llu dropped by kernel", packets_captured, stat.ps_recv, stat.ps_drop);
+	double ratio = stat.ps_drop?(double)stat.ps_drop/(double)stat.ps_recv*100:0;
+	msg(MSG_INFO, "%llu packets captured, %u received by filter, %u dropped by kernel, %f%% packet drop", packets_captured, stat.ps_recv, stat.ps_drop, ratio);
 }
 
 pcap_t* open_pcap(const char* name, int is_interface) 
