@@ -35,6 +35,8 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
         const char* filter_string;
         const char* prefix;
 	const char* tmp;
+	uint32_t file_size = 0;
+	uint32_t disk_size = 0;
 	pcap_t* p;
 
         ret = list_create();
@@ -81,6 +83,18 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
 		} else {
 			cutoff = atoi(tmp);
 		}
+		tmp = config_get_option(c, module_name, "file_size");
+		if (tmp)
+			file_size = atoi(tmp);
+
+		tmp = config_get_option(c, module_name, "disk_size");
+		if (tmp)
+			disk_size = atoi(tmp);
+
+		if (disk_size < file_size) {
+			msg(MSG_ERROR, "Filesize is greater than disk size. This is an invalid value");
+			goto out2;
+		}
 		
                 struct list_element_t* le = (struct list_element_t*)malloc(sizeof(struct list_element_t));
                 struct class_t* f = (struct class_t*)malloc(sizeof(struct class_t));
@@ -93,6 +107,11 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
                	f->prefix = prefix;
 		f->class_name = class_name;
 		f->cutoff = cutoff;
+		f->file_size = file_size;
+		f->disk_size = disk_size;
+		f->suffix = 0;
+		f->traffic_seen = 0;
+		f->linktype = linktype;
 
                 le->data = f;
                 list_push_back(ret, le);

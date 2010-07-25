@@ -26,7 +26,13 @@ struct class_t {
 	const char* prefix;
 	const char* class_name;
 	uint32_t cutoff;
+	int linktype;
 	struct dumper_tool* dumper;
+	
+	uint64_t file_size;
+	uint64_t disk_size;
+	uint64_t traffic_seen;
+	uint32_t suffix;
 };
 
 list_t* classes_create(const char* module_name, struct config* c, int linktype);

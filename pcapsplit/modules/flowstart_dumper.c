@@ -84,7 +84,8 @@ int flowstart_dumper_init(struct dumping_module* m, struct config* c)
 	struct list_element_t* i = sdata->filter_list->head;
 	while (i) {
 		struct class_t* t = i->data;
-		snprintf(pcap_file, MAX_FILENAME, "%s%s", t->prefix, t->class_name);
+		snprintf(pcap_file, MAX_FILENAME, "%s%s-%08x", t->prefix, t->class_name, t->suffix);
+		t->suffix++;
 		t->dumper = dumper_tool_open_file(pcap_file, m->linktype);
 		if (!t->dumper) {
 			msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
@@ -147,8 +148,27 @@ int fd_handle_packet(struct class_t* class, struct packet* p)
 		//msg(MSG_FATAL, "Something is fucked up: Did not get a connection object! You should never see this message.");
 		return 0;
 	}
+
+	// Check whether we need to open a new file
+	// we have to open a new file only if class_file_size if defined
+	if (class->file_size && class->traffic_seen + p->header.len > class->file_size) {
+		char pcap_file[MAX_FILENAME];
+		// finish old file 
+		dumper_tool_close_file(&class->dumper);
+		// open new file
+		snprintf(pcap_file, MAX_FILENAME, "%s%s-%08x", class->prefix, class->class_name, class->suffix);
+		class->suffix++;
+		class->dumper = dumper_tool_open_file(pcap_file, class->linktype);
+		if (!class->dumper) {
+			msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
+			return -1;
+		}
+
+		// TODO: rotate files if necessary
+	}	
+
 	c->last_seen = p->header.ts.tv_sec;
-	if (c->traffic_seen <= class->cutoff) {
+	if (!class->cutoff || c->traffic_seen <= class->cutoff) {
 		c->traffic_seen += p->header.len;
 		dumper_tool_dump(class->dumper , &p->header, p->data);
 	} else {
