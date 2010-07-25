@@ -15,7 +15,6 @@
 
 #include "conf.h"
 #include "iniparser.h"
-#include "dumping_module.h"
 
 #include <stdlib.h>
 #include <tools/msg.h>
@@ -53,10 +52,6 @@ size_t config_get_module_names(struct config* config, const char** module_names)
 		return 0;
 	}
 
-	if (count > MAX_MODULES) {
-		msg(MSG_ERROR, "Config file does contain more modules than allowed");
-		return 0;
-	}
 	for (i = 0; i != count; ++i) {
 		module_names[i] = iniparser_getsecname(config->d, i);
 	}

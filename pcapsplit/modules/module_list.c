@@ -14,7 +14,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "module_list.h"
-#include <tools/dumping_module.h>
+#include "dumping_module.h"
 #include <modules/size_dumper.h>
 #include <modules/filter_dumper.h>
 #include <modules/flowstart_dumper.h>

@@ -14,7 +14,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <tools/packet.h>
-#include <tools/dumping_module.h>
+#include <modules/dumping_module.h>
 #include <modules/module_list.h>
 #include <tools/conf.h>
 

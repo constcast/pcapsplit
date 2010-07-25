@@ -16,8 +16,8 @@
 #ifndef _DUMPING_MODULE_H_
 #define _DUMPING_MODULE_H_
 
-#include "packet.h"
-#include "conf.h"
+#include <tools/packet.h>
+#include <tools/conf.h>
 
 #include <sys/types.h>
 

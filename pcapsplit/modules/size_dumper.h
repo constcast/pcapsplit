@@ -16,7 +16,7 @@
 #ifndef _SIZE_DUMPER_H_
 #define _SIZE_DUMPER_H_
 
-#include <tools/dumping_module.h>
+#include "dumping_module.h"
 #include <tools/conf.h>
 
 struct dumping_module* size_dumper_new();

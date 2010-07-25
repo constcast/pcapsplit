@@ -50,6 +50,11 @@ void dumpers_create_all(struct dumpers* d, struct config* c, int linktype, int s
 	const char* module_names[MAX_MODULES];
 	size_t mod_count = config_get_module_names(c, module_names);
 	size_t i;
+
+	if (mod_count > MAX_MODULES) {
+		msg(MSG_ERROR, "More modules in config files than allowed!");
+		return;
+	}
 	for (i = 0; i != mod_count; ++i) {
 		if (strcmp(module_names[i], MAIN_NAME) == 0) {
 			continue;

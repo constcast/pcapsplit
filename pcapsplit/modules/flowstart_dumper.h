@@ -16,7 +16,7 @@
 #ifndef _FLOWSTART_DUMPER_H_
 #define _FLOWSTART_DUMPER_H_
 
-#include <tools/dumping_module.h>
+#include "dumping_module.h"
 #include <tools/conf.h>
 
 struct dumping_module* flowstart_dumper_new();
