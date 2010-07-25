@@ -149,7 +149,8 @@ struct connection* connection_new(const struct packet* p)
 			return connection_new(p);
 		} else {
 			// TODO: impelement memory reallocation for the conneciotn pool
-			msg(MSG_FATAL, "Whoops. You hit a missing feature. I have used our available conneciotns (specified by \"init_connection_pool\" in the configuration file. I  should now try to allocate more memory until we reach the value given in \"max_connection_pool\". But this is not implemeneted yet. Please increase \"init_connection_pool\" for the next run!");
+			//msg(MSG_FATAL, "Whoops. You hit a missing feature. I have used our available conneciotns (specified by \"init_connection_pool\" in the configuration file. I  should now try to allocate more memory until we reach the value given in \"max_connection_pool\". But this is not implemeneted yet. Please increase \"init_connection_pool\" for the next run!");
+			msg(MSG_FATAL, "Out of connection events. We see more connections that we can store!");
 			ret = NULL;
 		}
 	}
@@ -159,7 +160,6 @@ struct connection* connection_new(const struct packet* p)
 
 int connection_free(struct connection* c)
 {
-	msg(MSG_ERROR, "jasldkfjasdklfjsdakl");
 	HASH_FIND(hh, connections, &c->key, sizeof(record_key_t), found_conn);
 	if (found_conn) {
 		HASH_DEL(connections, c);

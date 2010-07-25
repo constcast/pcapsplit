@@ -144,7 +144,8 @@ int fd_handle_packet(struct class_t* class, struct packet* p)
 {
 	struct connection* c = connection_get(p);
 	if (!c) {
-		msg(MSG_FATAL, "Something is fucked up: Did not get a connection object! You should never see this message.");
+		//msg(MSG_FATAL, "Something is fucked up: Did not get a connection object! You should never see this message.");
+		return 0;
 	}
 	c->last_seen = p->header.ts.tv_sec;
 	if (c->traffic_seen <= class->cutoff) {
