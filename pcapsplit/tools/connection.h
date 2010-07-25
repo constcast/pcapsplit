@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include <tools/uthash.h>
-#include <packet.h>
+#include <tools/packet.h>
 #include <tools/list.h>
 
 struct connection_v4 {

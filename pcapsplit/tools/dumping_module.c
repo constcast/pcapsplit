@@ -14,7 +14,7 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "dumping_module.h"
-#include "module_list.h"
+#include <modules/module_list.h>
 
 #include <stdlib.h>
 #include <string.h>

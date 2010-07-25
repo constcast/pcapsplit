@@ -16,8 +16,8 @@
 #ifndef _FILTER_DUMPER_H_
 #define _FILTER_DUMPER_H_
 
-#include "dumping_module.h"
-#include "conf.h"
+#include <tools/dumping_module.h>
+#include <tools/conf.h>
 
 struct dumping_module* filter_dumper_new();
 

@@ -13,10 +13,10 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "packet.h"
-#include "dumping_module.h"
-#include "module_list.h"
-#include "conf.h"
+#include <tools/packet.h>
+#include <tools/dumping_module.h>
+#include <modules/module_list.h>
+#include <tools/conf.h>
 
 #include <stdlib.h>
 #include <unistd.h>

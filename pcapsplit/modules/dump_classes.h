@@ -18,7 +18,7 @@
 
 #include <pcap.h>
 #include <tools/list.h>
-#include <conf.h>
+#include <tools/conf.h>
 #include <stdint.h>
 
 struct class_t {
