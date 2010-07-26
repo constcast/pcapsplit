@@ -77,17 +77,21 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
                         goto out2;
                 }
 
-		tmp = config_get_option(c, module_name, "cutoff");
+		snprintf(conf_name, MAX_FILENAME,  "cutoff%d", class_no);
+		tmp = config_get_option(c, module_name, conf_name);
 		if (!tmp) {
 			cutoff = 0;
 		} else {
 			cutoff = atoi(tmp);
 		}
-		tmp = config_get_option(c, module_name, "file_size");
+		
+		snprintf(conf_name, MAX_FILENAME, "file_size%d", class_no);
+		tmp = config_get_option(c, module_name, conf_name);
 		if (tmp)
-			file_size = atoi(tmp);
+			file_size = atoll(tmp);
 
-		tmp = config_get_option(c, module_name, "disk_size");
+		snprintf(conf_name, MAX_FILENAME, "disk_size%d", class_no);
+		tmp = config_get_option(c, module_name, conf_name);
 		if (tmp)
 			disk_size = atoi(tmp);
 
