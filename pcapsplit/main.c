@@ -101,10 +101,18 @@ int main(int argc, char** argv)
 	if (pcap_file) { 
 		pfile = open_pcap(pcap_file, 0); 
 		dumpers_create_all(&dumps, conf, pcap_datalink(pfile), 65535);
+		if (!dumps.count) {
+			msg(MSG_FATAL, "Could not configure any modules.");
+			return -1;
+		}
 	} else {
 		is_live = 1;
 		pfile = open_pcap(capture_interface, 1);
 		dumpers_create_all(&dumps, conf, pcap_datalink(pfile), 65535);
+		if (!dumps.count) {
+			msg(MSG_FATAL, "Could not configure any modules.");
+			return -1;
+		}
 		// the dumper creating can take a significant amount of time.
 		// We could not read any packets during this initialization phase and 
 		// could therefore drop a significant amount of packets (depending on
