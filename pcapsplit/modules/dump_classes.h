@@ -31,7 +31,8 @@ struct class_t {
 	
 	uint64_t file_size;
 	uint64_t disk_size;
-	uint64_t traffic_seen;
+	uint64_t file_traffic_seen;
+	uint64_t disk_traffic_seen;
 	uint32_t suffix;
 };
 

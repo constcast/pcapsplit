@@ -114,7 +114,8 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
 		f->file_size = file_size;
 		f->disk_size = disk_size;
 		f->suffix = 0;
-		f->traffic_seen = 0;
+		f->file_traffic_seen = 0;
+		f->disk_traffic_seen = 0;
 		f->linktype = linktype;
 
                 le->data = f;

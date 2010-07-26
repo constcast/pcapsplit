@@ -151,7 +151,7 @@ int fd_handle_packet(struct class_t* class, struct packet* p)
 
 	// Check whether we need to open a new file
 	// we have to open a new file only if class_file_size if defined
-	if (class->file_size && class->traffic_seen + p->header.len > class->file_size) {
+	if (class->file_size && class->file_traffic_seen + p->header.len > class->file_size) {
 		char pcap_file[MAX_FILENAME];
 		// finish old file 
 		dumper_tool_close_file(&class->dumper);
@@ -163,9 +163,13 @@ int fd_handle_packet(struct class_t* class, struct packet* p)
 			msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
 			return -1;
 		}
+		class->file_traffic_seen = p->header.len;
+		// TODO: what about disk_traffic_seen?
 
 		// TODO: rotate files if necessary
-	}	
+	} else {
+		class->file_traffic_seen += p->header.len;
+	}
 
 	c->last_seen = p->header.ts.tv_sec;
 	if (!class->cutoff || c->traffic_seen <= class->cutoff) {
