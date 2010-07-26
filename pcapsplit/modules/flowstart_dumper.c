@@ -149,30 +149,30 @@ int fd_handle_packet(struct class_t* class, struct packet* p)
 		return 0;
 	}
 
-	// Check whether we need to open a new file
-	// we have to open a new file only if class_file_size if defined
-	if (class->file_size && class->file_traffic_seen + p->header.len > class->file_size) {
-		char pcap_file[MAX_FILENAME];
-		// finish old file 
-		dumper_tool_close_file(&class->dumper);
-		// open new file
-		snprintf(pcap_file, MAX_FILENAME, "%s%s-%08x", class->prefix, class->class_name, class->suffix);
-		class->suffix++;
-		class->dumper = dumper_tool_open_file(pcap_file, class->linktype);
-		if (!class->dumper) {
-			msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
-			return -1;
-		}
-		class->file_traffic_seen = p->header.len;
-		// TODO: what about disk_traffic_seen?
-
-		// TODO: rotate files if necessary
-	} else {
-		class->file_traffic_seen += p->header.len;
-	}
-
 	c->last_seen = p->header.ts.tv_sec;
 	if (!class->cutoff || c->traffic_seen <= class->cutoff) {
+		// Check whether we need to open a new file
+		// we have to open a new file only if class_file_size if defined
+		if (class->file_size && (class->file_traffic_seen + p->header.len) > class->file_size) {
+			char pcap_file[MAX_FILENAME];
+			// finish old file 
+			dumper_tool_close_file(&class->dumper);
+			// open new file
+			snprintf(pcap_file, MAX_FILENAME, "%s%s-%08x", class->prefix, class->class_name, class->suffix);
+			class->suffix++;
+			class->dumper = dumper_tool_open_file(pcap_file, class->linktype);
+			if (!class->dumper) {
+				msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
+				return -1;
+			}
+			class->file_traffic_seen = p->header.len;
+			// TODO: what about disk_traffic_seen?
+
+			// TODO: rotate files if necessary
+		} else {
+			class->file_traffic_seen += p->header.len;
+		}
+
 		c->traffic_seen += p->header.len;
 		dumper_tool_dump(class->dumper , &p->header, p->data);
 	} else {

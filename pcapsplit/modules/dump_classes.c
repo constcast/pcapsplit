@@ -24,19 +24,51 @@
 
 #define MAX_FILENAME 65535
 
+uint64_t convert_to_uint64_t(const char* value)
+{
+	// a value can be ended with K, M, G with stands for Kilo, Mega or Giga
+	// it is therefore possible to encode 10G without writing all the zeros.
+	uint64_t ret = 0;
+	size_t len = strlen(value);
+	char* copy = (char*)malloc(len);
+	strncpy(copy, value, len);
+
+	if (len == 0) {
+		goto out1;
+	}
+	char trailing = copy[len - 1];
+	if (trailing == 'K' || trailing == 'G' || trailing == 'M') {
+		copy[len - 1] = 0;
+	} 
+	ret = atoll(copy);
+	if (trailing == 'K') {
+		ret *= 1000;
+	} else if (trailing == 'M') {
+		ret *= 1000*1000; 
+	} else if (trailing == 'G') {
+		ret *= (uint64_t)1000*(uint64_t)1000*(uint64_t)1000;	
+	}
+
+	free(copy);
+	return ret;
+out1:
+	free(copy);
+	return 0;
+}
+
 list_t* classes_create(const char* module_name, struct config* c, int linktype)
 {
         list_t* ret;
         uint32_t class_no;
         uint32_t class_count;
-	uint32_t cutoff;
-        char conf_name[MAX_FILENAME];
         const char* class_name;
         const char* filter_string;
         const char* prefix;
 	const char* tmp;
-	uint32_t file_size = 0;
-	uint32_t disk_size = 0;
+	uint32_t cutoff;
+	char conf_name[MAX_FILENAME];	
+	uint64_t file_size = 0;
+	uint64_t disk_size = 0;
 	pcap_t* p;
 
         ret = list_create();
@@ -59,7 +91,6 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
         }
 
         p = pcap_open_dead(linktype, 65535);
-        // TODO: Introdcude a config parameter fro configuring the number of classes because the code below sucks
         // build filters from module confiugration
         // open pcap files for every defined class
         for (class_no = 1; class_no <= class_count; ++class_no) {
@@ -83,17 +114,22 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
 			cutoff = 0;
 		} else {
 			cutoff = atoi(tmp);
+			msg(MSG_INFO, "Cutoff for class %s is %d", class_name, cutoff);
 		}
 		
 		snprintf(conf_name, MAX_FILENAME, "file_size%d", class_no);
 		tmp = config_get_option(c, module_name, conf_name);
-		if (tmp)
-			file_size = atoll(tmp);
+		if (tmp) {
+			file_size = convert_to_uint64_t(tmp);
+			msg(MSG_INFO, "File size for class %s is %llu", class_name, file_size);
+		}
 
 		snprintf(conf_name, MAX_FILENAME, "disk_size%d", class_no);
 		tmp = config_get_option(c, module_name, conf_name);
-		if (tmp)
-			disk_size = atoi(tmp);
+		if (tmp) {
+			disk_size = convert_to_uint64_t(tmp);
+			msg(MSG_INFO, "Disk size for class %s is %llu", class_name, disk_size);
+		}
 
 		if (disk_size < file_size) {
 			msg(MSG_ERROR, "Filesize is greater than disk size. This is an invalid value");
