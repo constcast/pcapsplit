@@ -28,6 +28,9 @@
 
 #define MAX_FILENAME 65535
 
+static uint32_t prev_recv = 0;
+static uint32_t prev_drop = 0;
+
 void usage(char* progname)
 {
 	fprintf(stderr, "\n%s version %s\n\n", basename(progname), VERSION);
@@ -41,8 +44,16 @@ static void print_stats(pcap_t* pcap, uint64_t packets_captured)
 		msg(MSG_INFO, "Could not get pcap stats!");
 		return;
 	}
-	double ratio = stat.ps_drop?(double)stat.ps_drop/(double)stat.ps_recv*100:0;
-	msg(MSG_INFO, "%llu packets captured, %u received by filter, %u dropped by kernel, %f%% packet drop", packets_captured, stat.ps_recv, stat.ps_drop, ratio);
+	uint32_t recv_this_interval = stat.ps_recv - prev_recv;
+	uint32_t drop_this_interval = stat.ps_drop - prev_drop;
+
+	//double ratio = stat.ps_recv?(double)stat.ps_drop/(double)stat.ps_recv*100:0;
+	//msg(MSG_INFO, "%llu packets captured, %u received by filter, %u dropped by kernel, %f%% packet drop", packets_captured, stat.ps_recv, stat.ps_drop, ratio);
+	double ratio = recv_this_interval?(double)drop_this_interval/(double)recv_this_interval*100:0;
+	msg(MSG_INFO, "%llu packets captured, %u received by filter, %u dropped by kernel, %f%% packet drop", packets_captured, recv_this_interval, drop_this_interval, ratio);
+	
+	prev_recv = stat.ps_recv;
+	prev_drop = stat.ps_drop;
 }
 
 pcap_t* open_pcap(const char* name, int is_interface) 
