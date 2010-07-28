@@ -56,13 +56,13 @@ static void print_stats(pcap_t* pcap, uint64_t packets_captured)
 	prev_drop = stat.ps_drop;
 }
 
-pcap_t* open_pcap(const char* name, int is_interface) 
+pcap_t* open_pcap(const char* name, int is_interface, int snaplen) 
 {
 	char errorBuffer[PCAP_ERRBUF_SIZE];
 	pcap_t* pfile;
 	if (is_interface) {
 		// TODO: we might want to configure this? do we?
-		pfile = pcap_open_live(name, 65535, 1, 0, errorBuffer);
+		pfile = pcap_open_live(name, snaplen, 1, 0, errorBuffer);
 	} else {
 		pfile = pcap_open_offline(name, errorBuffer); 
 	}
@@ -77,8 +77,10 @@ int main(int argc, char** argv)
 {
 	const char* pcap_file;
 	const char* capture_interface;
+	const char* tmp;
 	int is_live = 0;
 	int running = 1;
+	int snaplen = 65535;
 
 	if (argc != 2) {
 		usage(argv[0]);
@@ -107,19 +109,24 @@ int main(int argc, char** argv)
 		msg(MSG_FATAL, "main: Got \'pcapfile\" *and* \"interface\". Please decide whether you want to work on- or offline!");
 		exit(-1);
 	}
+
+	tmp = config_get_option(conf, MAIN_NAME, "max_packet_size");
+	if (tmp) {
+		snaplen = atoi(tmp);
+	}
 	
 	pcap_t* pfile;
 	if (pcap_file) { 
-		pfile = open_pcap(pcap_file, 0); 
-		dumpers_create_all(&dumps, conf, pcap_datalink(pfile), 65535);
+		pfile = open_pcap(pcap_file, 0, snaplen); 
+		dumpers_create_all(&dumps, conf, pcap_datalink(pfile), snaplen);
 		if (!dumps.count) {
 			msg(MSG_FATAL, "Could not configure any modules.");
 			return -1;
 		}
 	} else {
 		is_live = 1;
-		pfile = open_pcap(capture_interface, 1);
-		dumpers_create_all(&dumps, conf, pcap_datalink(pfile), 65535);
+		pfile = open_pcap(capture_interface, 1, snaplen);
+		dumpers_create_all(&dumps, conf, pcap_datalink(pfile), snaplen);
 		if (!dumps.count) {
 			msg(MSG_FATAL, "Could not configure any modules.");
 			return -1;
@@ -132,7 +139,7 @@ int main(int argc, char** argv)
 		// drop statistice (we had to open the pcap interface for retrieving the
 		// interface link type which is important for module initialization
 		pcap_close(pfile);
-		pfile = open_pcap(capture_interface, 1);
+		pfile = open_pcap(capture_interface, 1, snaplen);
 	}
 	msg(MSG_INFO, "%s is up and running. Starting to consume packets ...", argv[0]);
 
@@ -165,3 +172,4 @@ int main(int argc, char** argv)
 
 	return 0;
 }
+
