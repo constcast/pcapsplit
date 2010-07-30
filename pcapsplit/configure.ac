@@ -16,7 +16,7 @@
 AC_INIT
 AC_PREREQ(2.59)
 AC_PROG_RANLIB
-AM_INIT_AUTOMAKE(pcapsplit, 0.2)
+AM_INIT_AUTOMAKE(pcapsplit, 0.3)
 
 AC_CHECK_HEADERS(stdio.h stdlib.h unistd.h libgen.h sys/types.h ctype.h string.h \
 	netinet/ip.h netinet/ip6.h net/ethernet.h netinet/tcp.h netinet/udp.h arpa/inet.h \
@@ -30,6 +30,10 @@ AC_CHECK_LIB([pcap], [pcap_open_live],
              [LDFLAGS="$LDFLAGS -lpcap"
               AC_SUBST(LDFLAGS)],
              [AC_MSG_ERROR([*** could not find libpcap. Please install it.])])
+
+AC_CHECK_LIB(pthread, main, , AC_MSG_ERROR([libpthread not found]))
+AC_CHECK_HEADERS([pthread.h] , , AC_MSG_ERROR([pthread headers not found]))
+
 
 AC_CONFIG_FILES([Makefile tools/Makefile modules/Makefile])
 
