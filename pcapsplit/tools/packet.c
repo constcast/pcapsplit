@@ -131,7 +131,7 @@ struct packet* packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, 
 		//msg(MSG_ERROR, "Well. Something is weird here!: Ethertype: %d, IP vesrsion: %d", et, (IP(data + offset))->ip_v);
 	}
 
-	return 0;
+	return ret;
 }
 
 int packet_free(struct packet_pool* pool, struct packet* packet)
