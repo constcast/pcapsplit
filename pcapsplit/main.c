@@ -81,6 +81,7 @@ int main(int argc, char** argv)
 	int is_live = 0;
 	int running = 1;
 	int snaplen = 65535;
+	uint32_t packet_pool_size = 1;
 
 	if (argc != 2) {
 		usage(argv[0]);
@@ -114,6 +115,13 @@ int main(int argc, char** argv)
 	if (tmp) {
 		snaplen = atoi(tmp);
 	}
+
+	tmp = config_get_option(conf, MAIN_NAME, "packet_pool");
+	if (tmp) {
+		packet_pool_size = atoi(tmp);
+	}
+
+	struct packet_pool* packet_pool = packet_pool_init(packet_pool_size, snaplen);
 	
 	pcap_t* pfile;
 	if (pcap_file) { 
@@ -143,22 +151,28 @@ int main(int argc, char** argv)
 	}
 	msg(MSG_INFO, "%s is up and running. Starting to consume packets ...", argv[0]);
 
-	struct packet p;
+	struct packet* p;
+	struct pcap_pkthdr pcap_hdr;
 	int i;
 	time_t last_stats = 0;
 	time_t stats_interval = 10;
 	uint64_t captured = 0;
+	const unsigned char* data;
 	while (running) {
-		if (NULL != (p.data = pcap_next(pfile, &p.header))) {
+		if (NULL != (data = pcap_next(pfile, &pcap_hdr))) {
 			captured++;
-			if (p.header.ts.tv_sec - last_stats > stats_interval && is_live) {
-				last_stats = p.header.ts.tv_sec;
+			if (pcap_hdr.ts.tv_sec - last_stats > stats_interval && is_live) {
+				last_stats = pcap_hdr.ts.tv_sec;
 				print_stats(pfile, captured);
 			}
-			packet_init(&p, &p.header, p.data);
-			for (i = 0; i != dumps.count; ++i) {
-				dumps.modules[i]->dfunc(dumps.modules[i], &p);
+			p = packet_new(packet_pool, &pcap_hdr, data);
+			if (!p) {
+				continue;
 			}
+			for (i = 0; i != dumps.count; ++i) {
+				dumps.modules[i]->dfunc(dumps.modules[i], p);
+			}
+			packet_free(packet_pool, p);
 		} else {
 			if (!is_live)
 				running = 0;
@@ -168,6 +182,7 @@ int main(int argc, char** argv)
 	msg(MSG_INFO, "%s finished reading packets ...", argv[0]);
 
 	dumpers_finish(&dumps);
+	packet_pool_deinit(packet_pool);
 	config_free(conf);
 
 	return 0;

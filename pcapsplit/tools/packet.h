@@ -17,6 +17,7 @@
 #define _PACKET_H_
 
 #include <pcap.h>
+#include <tools/list.h>
 
 #include <net/ethernet.h>
 #include <netinet/ip.h>
@@ -34,16 +35,23 @@
 
 struct packet {
 	struct pcap_pkthdr header;
-	const unsigned char* data;
+	unsigned char* data;
 
 	uint8_t is_ip;
 	uint8_t is_ip6;
 
 	struct ip* ip;
 	struct ip6_hdr* ip6;
-	
+
+	struct list_element_t* elem;	
 };
 
-int packet_init(struct packet* p, struct pcap_pkthdr *header, const unsigned char* data);
+struct packet_pool;
+
+struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_size);
+int packet_pool_deinit(struct packet_pool* pool);
+
+struct packet* packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsigned char* data);
+int packet_free(struct packet_pool* pool, struct packet* packet);
 
 #endif
