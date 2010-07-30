@@ -1,3 +1,11 @@
+Version 0.3:
+	- Introduce multi-threaded capturing/storing framework
+
+Version 0.2:
+	- New module for storing the first N bytes of each connection to a pcap file
+	- Allow online packet consumption
+	- Working statistics
+
 Version 0.1:
 	- New module for splitting pcaps into several files according to BPF filters
 
