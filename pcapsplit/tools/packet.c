@@ -32,6 +32,9 @@ struct packet_pool {
 
 	pthread_mutex_t free_lock;
 	pthread_mutex_t used_lock;
+
+	pthread_mutex_t wait_for_free;
+	pthread_mutex_t wait_for_used;
 };
 
 struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_size)
@@ -47,6 +50,9 @@ struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_si
 	ret->free_list = list_create();
 	pthread_mutex_init(&ret->free_lock, NULL);
 	pthread_mutex_init(&ret->used_lock, NULL);
+
+	pthread_mutex_init(&ret->wait_for_free, NULL);
+	pthread_mutex_init(&ret->wait_for_used, NULL);
 
 	if (!ret->free_list) {
 		msg(MSG_ERROR, "Could not allocate memory for free_list");
@@ -89,6 +95,8 @@ int packet_pool_deinit(struct packet_pool* pool)
 	}
 	pthread_mutex_destroy(&pool->free_lock);
 	pthread_mutex_destroy(&pool->used_lock);
+	pthread_mutex_destroy(&pool->wait_for_free);
+	pthread_mutex_destroy(&pool->wait_for_used);
 	free(pool->pool);
 	free(pool);
 	return 0;
@@ -101,9 +109,11 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 	struct list_element_t* e = list_pop_front(pool->free_list);
 	pthread_mutex_unlock(&pool->free_lock);
 
-	if (e) {
-		ret = e->data;
+	if (!e) {
+		pthread_mutex_lock(&pool->wait_for_free);
+		return packet_new(pool, header, data);
 	}
+	ret = e->data;
 	if (!ret) {
 		msg(MSG_ERROR, "No new free packets. Losing packet!");
 		return -1;
@@ -139,6 +149,7 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 	pthread_mutex_lock(&pool->used_lock);
 	list_push_back(pool->used_list, e);
 	pthread_mutex_unlock(&pool->used_lock);
+	pthread_mutex_unlock(&pool->wait_for_used);
 
 	return 0;
 }
@@ -149,6 +160,7 @@ int packet_free(struct packet_pool* pool, struct packet* packet)
 	pthread_mutex_lock(&pool->free_lock);
 	list_push_back(pool->free_list, packet->elem);
 	pthread_mutex_unlock(&pool->free_lock);
+	pthread_mutex_unlock(&pool->wait_for_free);
 	return 0;
 }
 
@@ -158,7 +170,8 @@ struct packet* packet_get(struct packet_pool* pool)
 	struct list_element_t* e = list_pop_front(pool->used_list);
 	pthread_mutex_unlock(&pool->used_lock);
 	if (!e) {
-		return NULL;
+		pthread_mutex_lock(&pool->wait_for_used);
+		return packet_get(pool);	
 	}
 	return e->data;
 }

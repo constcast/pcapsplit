@@ -91,7 +91,9 @@ void* worker_thread(void* d)
 
 	while (running) {
 		p = packet_get(data->pool);
-		if (!p) {
+		// we could have returned from packet_get because of an abort signal
+		// check the running flag because we might have been woken for shutdown!
+		if (!p || !running) {
 			continue;
 		}
 		for (i = 0; i != data->dumpers->count; ++i) {
@@ -196,7 +198,7 @@ int main(int argc, char** argv)
 	time_t last_stats = 0;
 	time_t stats_interval = 10;
 	uint64_t captured = 0;
-	const unsigned char* data;
+	const unsigned char* data = NULL;
 	while (running) {
 		if (NULL != (data = pcap_next(pfile, &pcap_hdr))) {
 			captured++;
@@ -213,6 +215,15 @@ int main(int argc, char** argv)
 
 	msg(MSG_INFO, "%s finished reading packets ...", argv[0]);
 
+	// TODO: this is a hack! we might need to wake the worker thread
+	// because it might be blocked at a mutex waiting for new packets
+	// we have to insert a packet in order to wake the thread from the 
+	// mutex. Hence, we re-include the last packet into the pool again ...
+	// FIXME: The hack can result in a segmentation fault if no packet
+	// has been read from the pcap_t ...
+	unsigned char* useless = malloc(snaplen);
+	packet_new(packet_pool, &pcap_hdr, useless);
+	free(useless);
 	pthread_join(worker_id, NULL);
 	dumpers_finish(&dumps);
 	packet_pool_deinit(packet_pool);
