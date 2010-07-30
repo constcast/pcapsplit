@@ -31,12 +31,38 @@ struct connection_pool_t {
 	uint32_t pool_size;
 	uint32_t max_pool_size;
 	uint32_t timeout;
+
+	uint32_t used_conns;
+	uint32_t free_conns;
 };
 
 struct connection_pool_t connection_pool;
 struct connection*  connections = NULL;
 struct connection lookup_conn;
 struct connection* found_conn;
+
+int check_and_free_last(time_t current_time)
+{
+	struct connection* c = NULL;
+	// check if we can recycle any of the used connecitons ...
+	struct list_element_t* last = connection_pool.used_list->tail;
+	if (!last) {
+		msg(MSG_FATAL, "Whoops. We do not have any free connections and also no used connections. This should not happen! I cannot work like this! Einmal mit Profis arbeiten!");
+		exit(-1);
+	}
+
+	c = last->data;
+	if (c->last_seen > current_time) {
+		msg(MSG_FATAL, "Whaaa! Something is fucked up in our timing!");
+		exit(-1);
+	} else if ((current_time - c->last_seen) > connection_pool.timeout) {
+		// Cool! we can reuse the connection as it timed out!
+		connection_free(c);
+		return 1;
+	}
+	// we could not free up a connection
+	return 0;
+}
 
 int key_fill(record_key_t* key, const struct packet* p)
 {
@@ -128,29 +154,15 @@ struct connection* connection_new(const struct packet* p)
 		ret = t->data;
 		list_push_front(connection_pool.used_list, t);
 	} else {
-		// check if we can recycle any of the used connecitons ...
-		struct list_element_t* last = connection_pool.used_list->tail;
-		if (!last) {
-			msg(MSG_FATAL, "Whoops. We do not have any free connections and also no used connections. This should not happen! I cannot work like this! Einmal mit Profis arbeiten!");
-			exit(-1);
-		}
-		time_t current_time = p->header.ts.tv_sec;
-
-		ret = last->data;
-		if (ret->last_seen > current_time) {
-			msg(MSG_FATAL, "Whaaa! Something is fucked up in our timing!");
-			exit(-1);
-		} else if ((current_time - ret->last_seen) > connection_pool.timeout) {
-			// Cool! we can reuse the connection as it timed out!
-			connection_free(ret);
+		if (check_and_free_last(p->header.ts.tv_sec)) {
 			// we have now a connection in free_list -> take it;
 			// we coud remove it from free_list ourself and save the function call, but we are lazy
 			// TODO: check if saving the function is important and fix the call if it is
-			return connection_new(p);
+			ret = connection_new(p);
 		} else {
 			// TODO: impelement memory reallocation for the conneciotn pool
 			//msg(MSG_FATAL, "Whoops. You hit a missing feature. I have used our available conneciotns (specified by \"init_connection_pool\" in the configuration file. I  should now try to allocate more memory until we reach the value given in \"max_connection_pool\". But this is not implemeneted yet. Please increase \"init_connection_pool\" for the next run!");
-			msg(MSG_FATAL, "Out of connection events. We see more connections that we can store!");
+			msg(MSG_FATAL, "Out of connection objects. We see more connections that we can store!");
 			ret = NULL;
 		}
 	}
@@ -185,7 +197,7 @@ struct connection* connection_get(const struct packet* p)
 		if (found_conn) {
 			found_conn->last_seen = p->header.ts.tv_sec;
 			key_fill(&found_conn->key, p);
-		//msg(MSG_ERROR, "New connection: %d %d %d %d", found_conn->key.c_v4.ip1, found_conn->key.c_v4.ip2, found_conn->key.c_v4.p1, found_conn->key.c_v4.p2);
+			//msg(MSG_ERROR, "New connection: %d %d %d %d", found_conn->key.c_v4.ip1, found_conn->key.c_v4.ip2, found_conn->key.c_v4.p1, found_conn->key.c_v4.p2);
 			HASH_ADD(hh, connections, key, sizeof(record_key_t), found_conn);
 		}
 	}

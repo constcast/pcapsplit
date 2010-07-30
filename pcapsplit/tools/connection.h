@@ -62,4 +62,7 @@ int connection_deinit_pool();
 struct connection* connection_get(const struct packet* p);
 int connection_free(struct connection*);
 
+uint32_t connection_get_used();
+uint32_t connection_get_free();
+
 #endif
