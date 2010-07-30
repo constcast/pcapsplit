@@ -21,15 +21,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <errno.h>
+#include <string.h>
 
 #include <tools/msg.h>
 
 #include <pcap.h>
 
+#include <pthread.h>
+
 #define MAX_FILENAME 65535
 
 static uint32_t prev_recv = 0;
 static uint32_t prev_drop = 0;
+static volatile int running = 1;
 
 void usage(char* progname)
 {
@@ -73,15 +78,40 @@ pcap_t* open_pcap(const char* name, int is_interface, int snaplen)
 	return pfile;
 }
 
+struct thread_data {
+	struct packet_pool* pool;
+	struct dumpers* dumpers;
+};
+
+void* worker_thread(void* d)
+{
+	struct thread_data* data = (struct thread_data*)d;
+	uint32_t i;
+	struct packet* p;
+
+	while (running) {
+		p = packet_get(data->pool);
+		if (!p) {
+			continue;
+		}
+		for (i = 0; i != data->dumpers->count; ++i) {
+			data->dumpers->modules[i]->dfunc(data->dumpers->modules[i], p);
+		}
+		packet_free(data->pool, p);
+	}
+
+	return NULL;
+}
+
 int main(int argc, char** argv)
 {
 	const char* pcap_file;
 	const char* capture_interface;
 	const char* tmp;
 	int is_live = 0;
-	int running = 1;
 	int snaplen = 65535;
 	uint32_t packet_pool_size = 1;
+	pthread_t worker_id;
 
 	if (argc != 2) {
 		usage(argv[0]);
@@ -122,13 +152,20 @@ int main(int argc, char** argv)
 	}
 
 	struct packet_pool* packet_pool = packet_pool_init(packet_pool_size, snaplen);
-	
+	struct thread_data worker_data;
+	worker_data.pool = packet_pool;
+	worker_data.dumpers = &dumps;
+
 	pcap_t* pfile;
 	if (pcap_file) { 
 		pfile = open_pcap(pcap_file, 0, snaplen); 
 		dumpers_create_all(&dumps, conf, pcap_datalink(pfile), snaplen);
 		if (!dumps.count) {
 			msg(MSG_FATAL, "Could not configure any modules.");
+			return -1;
+		}
+		if (pthread_create(&worker_id, NULL, worker_thread, &worker_data)) {
+			msg(MSG_FATAL, "Could not create worker thread: %s", strerror(errno));
 			return -1;
 		}
 	} else {
@@ -147,13 +184,15 @@ int main(int argc, char** argv)
 		// drop statistice (we had to open the pcap interface for retrieving the
 		// interface link type which is important for module initialization
 		pcap_close(pfile);
+		if (pthread_create(&worker_id, NULL, worker_thread, &worker_data)) {
+			msg(MSG_FATAL, "Could not create worker thread: %s", strerror(errno));
+			return -1;
+		}
 		pfile = open_pcap(capture_interface, 1, snaplen);
 	}
 	msg(MSG_INFO, "%s is up and running. Starting to consume packets ...", argv[0]);
 
-	struct packet* p;
 	struct pcap_pkthdr pcap_hdr;
-	int i;
 	time_t last_stats = 0;
 	time_t stats_interval = 10;
 	uint64_t captured = 0;
@@ -165,14 +204,7 @@ int main(int argc, char** argv)
 				last_stats = pcap_hdr.ts.tv_sec;
 				print_stats(pfile, captured);
 			}
-			p = packet_new(packet_pool, &pcap_hdr, data);
-			if (!p) {
-				continue;
-			}
-			for (i = 0; i != dumps.count; ++i) {
-				dumps.modules[i]->dfunc(dumps.modules[i], p);
-			}
-			packet_free(packet_pool, p);
+			packet_new(packet_pool, &pcap_hdr, data);
 		} else {
 			if (!is_live)
 				running = 0;
@@ -181,6 +213,7 @@ int main(int argc, char** argv)
 
 	msg(MSG_INFO, "%s finished reading packets ...", argv[0]);
 
+	pthread_join(worker_id, NULL);
 	dumpers_finish(&dumps);
 	packet_pool_deinit(packet_pool);
 	config_free(conf);

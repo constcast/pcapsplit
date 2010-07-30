@@ -51,7 +51,8 @@ struct packet_pool;
 struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_size);
 int packet_pool_deinit(struct packet_pool* pool);
 
-struct packet* packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsigned char* data);
+int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsigned char* data);
 int packet_free(struct packet_pool* pool, struct packet* packet);
+struct packet* packet_get(struct packet_pool* pool);
 
 #endif

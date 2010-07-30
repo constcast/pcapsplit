@@ -18,6 +18,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <pthread.h>
+
 #include <tools/msg.h>
 
 struct packet_pool {
@@ -27,6 +29,9 @@ struct packet_pool {
 
 	uint32_t pool_size;
 	uint32_t max_packet_size;
+
+	pthread_mutex_t free_lock;
+	pthread_mutex_t used_lock;
 };
 
 struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_size)
@@ -40,6 +45,8 @@ struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_si
 	ret->pool_size = pool_size;
 	ret->max_packet_size = max_packet_size;
 	ret->free_list = list_create();
+	pthread_mutex_init(&ret->free_lock, NULL);
+	pthread_mutex_init(&ret->used_lock, NULL);
 
 	if (!ret->free_list) {
 		msg(MSG_ERROR, "Could not allocate memory for free_list");
@@ -80,27 +87,26 @@ int packet_pool_deinit(struct packet_pool* pool)
 		free(p->data);
 		e = e->next;
 	}
+	pthread_mutex_destroy(&pool->free_lock);
+	pthread_mutex_destroy(&pool->used_lock);
 	free(pool->pool);
 	free(pool);
 	return 0;
 }
 
-struct packet* packet_get_free(struct packet_pool* pool)
+int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsigned char* data)
 {
+	struct packet* ret = NULL;
+	pthread_mutex_lock(&pool->free_lock);
 	struct list_element_t* e = list_pop_front(pool->free_list);
-	if (!e) {
-		return NULL;
-	}
-	list_push_back(pool->used_list, e);
-	return e->data;
-}
+	pthread_mutex_unlock(&pool->free_lock);
 
-struct packet* packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsigned char* data)
-{
-	struct packet* ret = packet_get_free(pool);
+	if (e) {
+		ret = e->data;
+	}
 	if (!ret) {
 		msg(MSG_ERROR, "No new free packets. Losing packet!");
-		return NULL;
+		return -1;
 	}
 	memcpy(&ret->header, header, sizeof(*header));
 	memcpy(ret->data, data, header->caplen);
@@ -110,7 +116,6 @@ struct packet* packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, 
 		ret->ip =  NULL;
 		ret->ip6 = NULL;
 		//msg(MSG_ERROR, "Unknown packet type: %d. What is it?", et);
-		return ret;
 	}
 
 	uint8_t  offset = et == ETHERTYPE_VLAN?4:0; // ethernetheader is shifted by four bytes if vlan is available
@@ -131,13 +136,30 @@ struct packet* packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, 
 		//msg(MSG_ERROR, "Well. Something is weird here!: Ethertype: %d, IP vesrsion: %d", et, (IP(data + offset))->ip_v);
 	}
 
-	return ret;
+	pthread_mutex_lock(&pool->used_lock);
+	list_push_back(pool->used_list, e);
+	pthread_mutex_unlock(&pool->used_lock);
+
+	return 0;
 }
 
 int packet_free(struct packet_pool* pool, struct packet* packet)
 {
-	list_delete_element(pool->used_list, packet->elem);
+	//list_delete_element(pool->used_list, packet->elem);
+	pthread_mutex_lock(&pool->free_lock);
 	list_push_back(pool->free_list, packet->elem);
+	pthread_mutex_unlock(&pool->free_lock);
 	return 0;
+}
+
+struct packet* packet_get(struct packet_pool* pool)
+{
+	pthread_mutex_lock(&pool->used_lock);
+	struct list_element_t* e = list_pop_front(pool->used_list);
+	pthread_mutex_unlock(&pool->used_lock);
+	if (!e) {
+		return NULL;
+	}
+	return e->data;
 }
 
