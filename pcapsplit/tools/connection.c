@@ -46,8 +46,11 @@ int check_and_free_last(time_t current_time)
 	// check if we can recycle any of the used connecitons ...
 	struct list_element_t* last = connection_pool.used_list->tail;
 	if (!last) {
-		msg(MSG_FATAL, "Whoops. We do not have any free connections and also no used connections. This should not happen! I cannot work like this! Einmal mit Profis arbeiten!");
-		exit(-1);
+		if (!connection_pool.free_list->head) {
+			msg(MSG_FATAL, "Whoops. We do not have any free connections and also no used connections. This should not happen! I cannot work like this! Einmal mit Profis arbeiten!");
+			exit(-1);
+		}
+		return 0;
 	}
 
 	c = last->data;
@@ -56,6 +59,7 @@ int check_and_free_last(time_t current_time)
 		exit(-1);
 	} else if ((current_time - c->last_seen) > connection_pool.timeout) {
 		// Cool! we can reuse the connection as it timed out!
+		msg(MSG_ERROR, "connection timeout!");
 		connection_free(c);
 		return 1;
 	}
@@ -119,6 +123,7 @@ int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t ti
 	struct connection* c;
 
 	connection_pool.pool_size = pool_size;
+	connection_pool.timeout = timeout;
 	connection_pool.max_pool_size = max_pool_size;
 	connection_pool.pool = (struct connection*)malloc(sizeof(struct connection) * pool_size);
 
@@ -200,6 +205,7 @@ int connection_free(struct connection* c)
 
 struct connection* connection_get(const struct packet* p)
 {
+	check_and_free_last(p->header.ts.tv_sec);
 	key_fill(&lookup_conn.key, p);
 	//msg(MSG_ERROR, "New connection: %d %d %d %d", lookup_conn.key.c_v4.ip1, lookup_conn.key.c_v4.ip2, lookup_conn.key.c_v4.p1, lookup_conn.key.c_v4.p2);
 	
