@@ -96,7 +96,7 @@ int key_fill(record_key_t* key, const struct packet* p)
 		//msg(MSG_ERROR, "%d %d %d %d %d", key->c_v4.ip1, key->c_v4.ip2, key->c_v4.p1, key->c_v4.p2, key->c_v4.proto);
 	} else if (p->is_ip6) {
 		// TOOD handle IPv6. This is relevant!
-		msg(MSG_FATAL, "This is IPv6 and not yet implemented");
+		//msg(MSG_FATAL, "This is IPv6 and not yet implemented");
 	} else {
 		// We do not care at the moment
 		//msg(MSG_ERROR, "connection_fill: Error, unkonwn packet type: ");
