@@ -34,6 +34,7 @@
 
 static uint32_t prev_recv = 0;
 static uint32_t prev_drop = 0;
+static uint64_t prev_app = 0;
 static volatile int running = 1;
 
 void usage(char* progname)
@@ -42,7 +43,7 @@ void usage(char* progname)
 	fprintf(stderr, "Usage: %s <config-file>\n\n", basename(progname));
 }
 
-static void print_stats(pcap_t* pcap, uint64_t packets_captured) 
+static void print_stats(pcap_t* pcap, uint64_t packets_captured, struct packet_pool* pool) 
 {
 	struct pcap_stat stat;
 	if (0 > pcap_stats(pcap, &stat)) {
@@ -55,10 +56,11 @@ static void print_stats(pcap_t* pcap, uint64_t packets_captured)
 	//double ratio = stat.ps_recv?(double)stat.ps_drop/(double)stat.ps_recv*100:0;
 	//msg(MSG_INFO, "%llu packets captured, %u received by filter, %u dropped by kernel, %f%% packet drop", packets_captured, stat.ps_recv, stat.ps_drop, ratio);
 	double ratio = recv_this_interval?(double)drop_this_interval/(double)recv_this_interval*100:0;
-	msg(MSG_INFO, "%llu packets captured, %u received by filter, %u dropped by kernel, %f%% packet drop", packets_captured, recv_this_interval, drop_this_interval, ratio);
+	msg(MSG_INFO, "%llu packets captured, %u received by filter, %u dropped by kernel, %f%% packet drop in kernel, %llu packets lost in app", packets_captured, recv_this_interval, drop_this_interval, ratio, packet_lost(pool) - prev_app);
 	
 	prev_recv = stat.ps_recv;
 	prev_drop = stat.ps_drop;
+	prev_app = packet_lost(pool);
 }
 
 pcap_t* open_pcap(const char* name, int is_interface, int snaplen) 
@@ -204,7 +206,7 @@ int main(int argc, char** argv)
 			captured++;
 			if (pcap_hdr.ts.tv_sec - last_stats > stats_interval && is_live) {
 				last_stats = pcap_hdr.ts.tv_sec;
-				print_stats(pfile, captured);
+				print_stats(pfile, captured, packet_pool);
 			}
 			packet_new(packet_pool, &pcap_hdr, data);
 		} else {

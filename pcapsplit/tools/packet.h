@@ -55,4 +55,6 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 int packet_free(struct packet_pool* pool, struct packet* packet);
 struct packet* packet_get(struct packet_pool* pool);
 
+uint64_t packet_lost(struct packet_pool* pool);
+
 #endif

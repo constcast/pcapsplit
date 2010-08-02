@@ -33,8 +33,7 @@ struct packet_pool {
 	pthread_mutex_t free_lock;
 	pthread_mutex_t used_lock;
 
-	pthread_mutex_t wait_for_free;
-	pthread_mutex_t wait_for_used;
+	uint64_t packets_lost;
 };
 
 struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_size)
@@ -50,9 +49,6 @@ struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_si
 	ret->free_list = list_create();
 	pthread_mutex_init(&ret->free_lock, NULL);
 	pthread_mutex_init(&ret->used_lock, NULL);
-
-	pthread_mutex_init(&ret->wait_for_free, NULL);
-	pthread_mutex_init(&ret->wait_for_used, NULL);
 
 	if (!ret->free_list) {
 		msg(MSG_ERROR, "Could not allocate memory for free_list");
@@ -71,6 +67,7 @@ struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_si
 		p->elem->data = p;
 		list_push_back(ret->free_list, p->elem);
 	}
+	ret->packets_lost = 0;
 
 	return ret;
 out:
@@ -95,8 +92,6 @@ int packet_pool_deinit(struct packet_pool* pool)
 	}
 	pthread_mutex_destroy(&pool->free_lock);
 	pthread_mutex_destroy(&pool->used_lock);
-	pthread_mutex_destroy(&pool->wait_for_free);
-	pthread_mutex_destroy(&pool->wait_for_used);
 	free(pool->pool);
 	free(pool);
 	return 0;
@@ -110,14 +105,10 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 	pthread_mutex_unlock(&pool->free_lock);
 
 	if (!e) {
-		pthread_mutex_lock(&pool->wait_for_free);
-		return packet_new(pool, header, data);
-	}
-	ret = e->data;
-	if (!ret) {
-		msg(MSG_ERROR, "No new free packets. Losing packet!");
+		pool->packets_lost++;
 		return -1;
 	}
+	ret = e->data;
 	memcpy(&ret->header, header, sizeof(*header));
 	memcpy(ret->data, data, header->caplen);
 	uint16_t et = ntohs(ETHERNET(data)->ether_type);
@@ -133,14 +124,14 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 	if ((IP(data + offset))->ip_v == 4 || et == ETHERTYPE_IP) {
 		ret->is_ip6 = 0;
 		ret->is_ip  = 1;
-		ret->ip =  IP(data);
+		ret->ip =  IP(ret->data);
 		ret->ip6 = NULL;
 		//msg(MSG_ERROR, "Found IPv4 packet");
 	} else if ((IP(data + offset))->ip_v == 6 || et == ETHERTYPE_IPV6) {
 		ret->is_ip6 = 1;
 		ret->is_ip  = 0;
 		ret->ip = NULL;
-		ret->ip6 = IP6(data);
+		ret->ip6 = IP6(ret->data);
 		//msg(MSG_ERROR, "Found IPv6 packet");
 	} else {
 		//msg(MSG_ERROR, "Well. Something is weird here!: Ethertype: %d, IP vesrsion: %d", et, (IP(data + offset))->ip_v);
@@ -149,18 +140,15 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 	pthread_mutex_lock(&pool->used_lock);
 	list_push_back(pool->used_list, e);
 	pthread_mutex_unlock(&pool->used_lock);
-	pthread_mutex_unlock(&pool->wait_for_used);
 
 	return 0;
 }
 
 int packet_free(struct packet_pool* pool, struct packet* packet)
 {
-	//list_delete_element(pool->used_list, packet->elem);
 	pthread_mutex_lock(&pool->free_lock);
 	list_push_back(pool->free_list, packet->elem);
 	pthread_mutex_unlock(&pool->free_lock);
-	pthread_mutex_unlock(&pool->wait_for_free);
 	return 0;
 }
 
@@ -170,9 +158,13 @@ struct packet* packet_get(struct packet_pool* pool)
 	struct list_element_t* e = list_pop_front(pool->used_list);
 	pthread_mutex_unlock(&pool->used_lock);
 	if (!e) {
-		pthread_mutex_lock(&pool->wait_for_used);
-		return packet_get(pool);	
+		return NULL;
 	}
 	return e->data;
+}
+
+uint64_t packet_lost(struct packet_pool* pool)
+{
+	return pool->packets_lost;
 }
 
