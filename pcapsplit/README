@@ -57,6 +57,32 @@ implemented:
   directories. The variable "filterN" defines the pcap filter for the class N. 
   The filter format must be in tcpdump(1) format.
 
+- flowstart_dumper: Similar to filter_dumper but allows the configuration of a
+  cutoff per connection. The module performs connection tracking (acctually
+  bi-flow tracking). A cutoff can be defined by class and is specified in
+  bytes. A cutoff of N bytes means only N bytes per bi-flow are stored to the
+  classes pcap file. A definition of a class could be
+
+	class1=ip
+	filter1="ip and tcp and port 80"
+	cutoff1=15000
+
+  which would match all TCP traffic with source or destination port 80 over
+  IPv4. The parameter "cutoff1" would result in 15000 bytes per connection to
+  captured.
+  It is also possible to specify the maximum pcap file size for a class by
+  configuring the variable
+
+	file_size1 = 100000000
+
+  This results in maximum pcap files that have the size 100000000 the output
+  Afterwards, a new file is produced for the class. The filenames are produced
+  in a form like '$file_prefix$class_name-$i' where $i is a running number
+  that starts with 0 at programm-start and is increased everytime a new
+  class-file is started.
+  The flow-dumper module aims at dumping the first N bytes of each connections
+  and tries to reassemble the corresponding functionallity of the time-machine
+  (TODO: links to time machine) and was inspired by the program.
 
 Please email bug reports, feature requests, etc to
 
