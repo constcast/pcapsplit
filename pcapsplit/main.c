@@ -23,6 +23,7 @@
 #include <libgen.h>
 #include <errno.h>
 #include <string.h>
+#include <signal.h>
 
 #include <tools/msg.h>
 
@@ -41,6 +42,18 @@ void usage(char* progname)
 {
 	fprintf(stderr, "\n%s version %s\n\n", basename(progname), VERSION);
 	fprintf(stderr, "Usage: %s <config-file>\n\n", basename(progname));
+}
+
+void sig_handler(int sig)
+{
+	if (running) {
+		msg(MSG_INFO, "Received signal %u, shutting down!", sig);
+		running = 0;
+	} else {
+		// we already received the first signal. Aborting!");
+		msg(MSG_INFO, "Recieved second signal Shutting down the hard way!");
+		exit(-1);
+	}
 }
 
 static void print_stats(pcap_t* pcap, uint64_t packets_captured, struct packet_pool* pool) 
@@ -124,6 +137,12 @@ int main(int argc, char** argv)
 
 	msg_setlevel(MSG_INFO);
 	msg(MSG_INFO, "%s is initializing ...", argv[0]);
+
+	// install signal handler
+	if (SIG_ERR == signal(SIGINT, sig_handler)) {
+		msg(MSG_ERROR, "Could not install signal handler.");
+		return -1;
+	}
 
 	struct dumpers dumps;
 	dumpers_init(&dumps);
