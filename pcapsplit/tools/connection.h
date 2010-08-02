@@ -55,6 +55,14 @@ struct connection {
 	UT_hash_handle hh;
 };
 
+struct connection_stats {
+	uint64_t used_conns;
+	uint64_t free_conns;
+	uint64_t active_conns;
+
+	uint64_t out_of_connections;
+
+};
 
 int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t timeout);
 int connection_deinit_pool();
@@ -64,5 +72,7 @@ int connection_free(struct connection*);
 
 uint32_t connection_get_used();
 uint32_t connection_get_free();
+
+struct connection_stats* connection_get_stats();
 
 #endif

@@ -29,7 +29,7 @@
 
 #define MAX_FILENAME 65535
 
-int fd_handle_packet(struct class_t* t, struct packet* p);
+int fd_handle_packet(struct class_t* t, struct packet* p, struct connection* c);
 
 struct dumping_module* flowstart_dumper_new()
 {
@@ -126,30 +126,49 @@ int flowstart_dumper_finish(struct dumping_module* m)
 int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 {
 	struct flowstart_dumper_data* d = (struct flowstart_dumper_data*)m->module_data;
-
-	struct list_element_t* i = d->filter_list->head;
-	while (i)  {
-		struct class_t* c = (struct class_t*)i->data;
-		if (bpf_filter(c->filter_program.bf_insns, (u_char*)p->data, p->header.len, p->header.caplen)) {
-			return fd_handle_packet(c, p);
-		}
-		i = i->next;
-	}
-
-	//msg(MSG_INFO, "No matching filter for packet: Skipping packet!");
-
-	return 0;
-}
-
-int fd_handle_packet(struct class_t* class, struct packet* p)
-{
 	struct connection* c = connection_get(p);
+	uint32_t max_cutoff = 0;;
 	if (!c) {
 		//msg(MSG_FATAL, "Something is fucked up: Did not get a connection object! You should never see this message.");
 		return 0;
 	}
 
 	c->last_seen = p->header.ts.tv_sec;
+
+	struct list_element_t* i = d->filter_list->head;
+	while (i)  {
+		struct class_t* class = (struct class_t*)i->data;
+		if (bpf_filter(class->filter_program.bf_insns, (u_char*)p->data, p->header.len, p->header.caplen)) {
+			if (class->cutoff > max_cutoff) {
+				max_cutoff = class->cutoff;
+			}
+			return fd_handle_packet(class, p, c);
+		}
+		i = i->next;
+	}
+
+	// mark connection as active if it has not yet received
+	// any traffic
+	if (c->traffic_seen == 0) {
+		connection_get_stats()->active_conns++;
+	}
+
+	// mark connetion as inactive, if the current paket would exeed the
+	// maximum connection limit of all classes that matches the connection
+
+	// TODO: do we want to use len or caplen?
+	if (c->traffic_seen < max_cutoff && (c->traffic_seen + p->header.len > max_cutoff)) {
+		connection_get_stats()->active_conns--;
+	}
+	c->traffic_seen += p->header.len;
+
+	//msg(MSG_INFO, "No matching filter for packet: Skipping packet!");
+
+	return 0;
+}
+
+int fd_handle_packet(struct class_t* class, struct packet* p, struct connection* c)
+{
 	if (!class->cutoff || c->traffic_seen <= class->cutoff) {
 		// Check whether we need to open a new file
 		// we have to open a new file only if class_file_size if defined
@@ -165,7 +184,7 @@ int fd_handle_packet(struct class_t* class, struct packet* p)
 				msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
 				return -1;
 			}
-			class->file_traffic_seen = p->header.len;
+			// update statistics
 			// TODO: what about disk_traffic_seen?
 
 			// TODO: rotate files if necessary
@@ -173,7 +192,6 @@ int fd_handle_packet(struct class_t* class, struct packet* p)
 			class->file_traffic_seen += p->header.len;
 		}
 
-		c->traffic_seen += p->header.len;
 		dumper_tool_dump(class->dumper , &p->header, p->data);
 	} else {
 		//connection_free(c);

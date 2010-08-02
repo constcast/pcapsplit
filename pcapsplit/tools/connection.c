@@ -32,10 +32,7 @@ struct connection_pool_t {
 	uint32_t max_pool_size;
 	uint32_t timeout;
 
-	uint32_t used_conns;
-	uint32_t free_conns;
-
-	uint64_t out_of_connections;
+	struct connection_stats stats;
 };
 
 struct connection_pool_t connection_pool;
@@ -127,7 +124,10 @@ int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t ti
 	connection_pool.free_list = list_create();
 	connection_pool.used_list = list_create();
 	
-	connection_pool.out_of_connections = 0;
+	connection_pool.stats.out_of_connections = 0;
+	connection_pool.stats.used_conns = 0;
+	connection_pool.stats.free_conns = 0;
+	connection_pool.stats.active_conns = 0;
 
 	for (i = 0; i != pool_size; ++i) {
 		c = &connection_pool.pool[i];
@@ -135,6 +135,7 @@ int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t ti
 		c->element.data = c;
 		
 		list_push_back(connection_pool.free_list, &c->element);
+		connection_pool.stats.free_conns++;
 	}
 
 	return 0;
@@ -155,6 +156,8 @@ struct connection* connection_new(const struct packet* p)
 	if (t) {
 		ret = t->data;
 		list_push_front(connection_pool.used_list, t);
+		connection_pool.stats.used_conns++;
+		connection_pool.stats.free_conns--;
 	} else {
 		if (check_and_free_last(p->header.ts.tv_sec)) {
 			// we have now a connection in free_list -> take it;
@@ -164,9 +167,9 @@ struct connection* connection_new(const struct packet* p)
 		} else {
 			// TODO: impelement memory reallocation for the conneciotn pool
 			//msg(MSG_FATAL, "Whoops. You hit a missing feature. I have used our available conneciotns (specified by \"init_connection_pool\" in the configuration file. I  should now try to allocate more memory until we reach the value given in \"max_connection_pool\". But this is not implemeneted yet. Please increase \"init_connection_pool\" for the next run!");
-			connection_pool.out_of_connections++;
-			if (connection_pool.out_of_connections % 10000000) {
-				msg(MSG_FATAL, "Could not find a connection object for %llu packets", connection_pool.out_of_connections);
+			connection_pool.stats.out_of_connections++;
+			if (connection_pool.stats.out_of_connections % 10000000) {
+				msg(MSG_FATAL, "Could not find a connection object for %llu packets", connection_pool.stats.out_of_connections);
 			}
 			ret = NULL;
 		}
@@ -184,6 +187,8 @@ int connection_free(struct connection* c)
 	list_delete_element(connection_pool.used_list, &c->element);
 	connection_reset_counters(c);
 	list_push_back(connection_pool.free_list, &c->element);
+	connection_pool.stats.used_conns--;
+	connection_pool.stats.free_conns++;
 	return 0;
 }
 
@@ -208,3 +213,9 @@ struct connection* connection_get(const struct packet* p)
 	}
 	return found_conn;
 }
+
+struct connection_stats* connection_get_stats()
+{
+	return &connection_pool.stats;
+}
+
