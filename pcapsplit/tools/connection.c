@@ -34,6 +34,8 @@ struct connection_pool_t {
 
 	uint32_t used_conns;
 	uint32_t free_conns;
+
+	uint64_t out_of_connections;
 };
 
 struct connection_pool_t connection_pool;
@@ -125,7 +127,7 @@ int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t ti
 	connection_pool.free_list = list_create();
 	connection_pool.used_list = list_create();
 	
-	
+	connection_pool.out_of_connections = 0;
 
 	for (i = 0; i != pool_size; ++i) {
 		c = &connection_pool.pool[i];
@@ -162,7 +164,10 @@ struct connection* connection_new(const struct packet* p)
 		} else {
 			// TODO: impelement memory reallocation for the conneciotn pool
 			//msg(MSG_FATAL, "Whoops. You hit a missing feature. I have used our available conneciotns (specified by \"init_connection_pool\" in the configuration file. I  should now try to allocate more memory until we reach the value given in \"max_connection_pool\". But this is not implemeneted yet. Please increase \"init_connection_pool\" for the next run!");
-			msg(MSG_FATAL, "Out of connection objects. We see more connections that we can store!");
+			connection_pool.out_of_connections++;
+			if (connection_pool.out_of_connections % 10000000) {
+				msg(MSG_FATAL, "Could not find a connection object for %llu packets", connection_pool.out_of_connections);
+			}
 			ret = NULL;
 		}
 	}
