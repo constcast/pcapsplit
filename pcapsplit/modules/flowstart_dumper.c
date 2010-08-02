@@ -142,7 +142,7 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 			if (class->cutoff > max_cutoff) {
 				max_cutoff = class->cutoff;
 			}
-			return fd_handle_packet(class, p, c);
+			fd_handle_packet(class, p, c);
 		}
 		i = i->next;
 	}
@@ -151,6 +151,7 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 	// any traffic
 	if (c->traffic_seen == 0) {
 		connection_get_stats()->active_conns++;
+		c->active = 1;
 	}
 
 	// mark connetion as inactive, if the current paket would exeed the
@@ -159,6 +160,11 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 	// TODO: do we want to use len or caplen?
 	if (c->traffic_seen < max_cutoff && (c->traffic_seen + p->header.len > max_cutoff)) {
 		connection_get_stats()->active_conns--;
+		if (!c->active) {
+			msg(MSG_ERROR, "Active/Inactive connection calculation is fucked up!. Fix This!");
+		}
+		c->active = 0;
+		
 	}
 	c->traffic_seen += p->header.len;
 

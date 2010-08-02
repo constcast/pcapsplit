@@ -110,6 +110,7 @@ void connection_reset_counters(struct connection* c)
 	memset(&c->key, 0, sizeof(c->key));
 	c->last_seen = 0;
 	c->traffic_seen = 0;
+	c->active = 0;
 }
 
 int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t timeout)
@@ -128,6 +129,7 @@ int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t ti
 	connection_pool.stats.used_conns = 0;
 	connection_pool.stats.free_conns = 0;
 	connection_pool.stats.active_conns = 0;
+	connection_pool.stats.active_conns_timed_out = 0;
 
 	for (i = 0; i != pool_size; ++i) {
 		c = &connection_pool.pool[i];
@@ -185,6 +187,10 @@ int connection_free(struct connection* c)
 		HASH_DEL(connections, c);
 	}
 	list_delete_element(connection_pool.used_list, &c->element);
+	if (c->active) {
+		connection_pool.stats.active_conns--;
+		connection_pool.stats.active_conns_timed_out++;
+	}
 	connection_reset_counters(c);
 	list_push_back(connection_pool.free_list, &c->element);
 	connection_pool.stats.used_conns--;

@@ -51,6 +51,7 @@ struct connection {
 
 	time_t last_seen;
 	uint32_t traffic_seen;
+	uint8_t active;
 	
 	UT_hash_handle hh;
 };
@@ -59,6 +60,7 @@ struct connection_stats {
 	uint64_t used_conns;
 	uint64_t free_conns;
 	uint64_t active_conns;
+	uint64_t active_conns_timed_out;
 
 	uint64_t out_of_connections;
 
