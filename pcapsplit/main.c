@@ -17,6 +17,7 @@
 #include <modules/dumping_module.h>
 #include <modules/module_list.h>
 #include <tools/conf.h>
+#include <tools/connection.h>
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -70,6 +71,9 @@ static void print_stats(pcap_t* pcap, uint64_t packets_captured, struct packet_p
 	//msg(MSG_INFO, "%llu packets captured, %u received by filter, %u dropped by kernel, %f%% packet drop", packets_captured, stat.ps_recv, stat.ps_drop, ratio);
 	double ratio = recv_this_interval?(double)drop_this_interval/(double)recv_this_interval*100:0;
 	msg(MSG_INFO, "%llu packets captured, %u received by filter, %u dropped by kernel, %f%% packet drop in kernel, %llu packets lost in app", packets_captured, recv_this_interval, drop_this_interval, ratio, packet_lost(pool) - prev_app);
+
+	struct connection_stats* conn_stats = connection_get_stats();
+	msg(MSG_INFO, "%llu free, %llu used, %llu active", conn_stats->free_conns, conn_stats->used_conns, conn_stats->active_conns);
 	
 	prev_recv = stat.ps_recv;
 	prev_drop = stat.ps_drop;
