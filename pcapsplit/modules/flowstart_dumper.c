@@ -190,6 +190,7 @@ int fd_handle_packet(struct class_t* class, struct packet* p, struct connection*
 				msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
 				return -1;
 			}
+			class->file_traffic_seen = p->header.len;
 			// update statistics
 			// TODO: what about disk_traffic_seen?
 
