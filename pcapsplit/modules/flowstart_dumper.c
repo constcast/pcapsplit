@@ -158,7 +158,7 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 	// maximum connection limit of all classes that matches the connection
 
 	// TODO: do we want to use len or caplen?
-	if (c->traffic_seen < max_cutoff && (c->traffic_seen + p->header.len > max_cutoff)) {
+	if (c->traffic_seen <= max_cutoff && (c->traffic_seen + p->header.len > max_cutoff)) {
 		connection_get_stats()->active_conns--;
 		if (!c->active) {
 			msg(MSG_ERROR, "Active/Inactive connection calculation is fucked up!. Fix This!");
