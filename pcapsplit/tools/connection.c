@@ -55,11 +55,12 @@ int check_and_free_last(time_t current_time)
 
 	c = last->data;
 	if (c->last_seen > current_time) {
-		msg(MSG_FATAL, "Whaaa! Something is fucked up in our timing!");
+		msg(MSG_FATAL, "Whaaa! Something is fucked up in our timing! Old time: %u New Time: %u", c->last_seen, current_time);
 		exit(-1);
-	} else if ((current_time - c->last_seen) > connection_pool.timeout) {
+	} 
+
+	if ((current_time - c->last_seen) > connection_pool.timeout) {
 		// Cool! we can reuse the connection as it timed out!
-		msg(MSG_ERROR, "connection timeout!");
 		connection_free(c);
 		return 1;
 	}
@@ -122,7 +123,9 @@ int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t ti
 	uint32_t i;
 	struct connection* c;
 
+	msg(MSG_INFO, "Creating connection pool with size %u", pool_size);
 	connection_pool.pool_size = pool_size;
+	msg(MSG_INFO, "Connection timeout is %u seconds", timeout);
 	connection_pool.timeout = timeout;
 	connection_pool.max_pool_size = max_pool_size;
 	connection_pool.pool = (struct connection*)malloc(sizeof(struct connection) * pool_size);
@@ -175,7 +178,7 @@ struct connection* connection_new(const struct packet* p)
 			// TODO: impelement memory reallocation for the conneciotn pool
 			//msg(MSG_FATAL, "Whoops. You hit a missing feature. I have used our available conneciotns (specified by \"init_connection_pool\" in the configuration file. I  should now try to allocate more memory until we reach the value given in \"max_connection_pool\". But this is not implemeneted yet. Please increase \"init_connection_pool\" for the next run!");
 			connection_pool.stats.out_of_connections++;
-			if (connection_pool.stats.out_of_connections % 10000000) {
+			if (connection_pool.stats.out_of_connections % 100000) {
 				msg(MSG_FATAL, "Could not find a connection object for %llu packets", connection_pool.stats.out_of_connections);
 			}
 			ret = NULL;
@@ -212,6 +215,8 @@ struct connection* connection_get(const struct packet* p)
 	HASH_FIND(hh, connections, &lookup_conn.key, sizeof(record_key_t), found_conn);
 	if (found_conn) {
 		found_conn->last_seen = p->header.ts.tv_sec;
+		list_delete_element(connection_pool.used_list, &found_conn->element);
+		list_push_front(connection_pool.used_list, &found_conn->element);
 		//msg(MSG_ERROR, "New connection: %d %d %d %d", found_conn->key.c_v4.ip1, found_conn->key.c_v4.ip2, found_conn->key.c_v4.p1, found_conn->key.c_v4.p2);
 		//msg(MSG_ERROR, "Found connection");
 	} else {
