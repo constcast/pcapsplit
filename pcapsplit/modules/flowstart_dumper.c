@@ -226,7 +226,13 @@ int perform_postprocessing(const char* command, const char* filename)
 
 	// child code: exec the command
 	int ret;
-	ret = execl(command, command, filename, NULL);
+	int command_len = strlen(command) + strlen(filename) + 10;
+	char* c = malloc(command_len);
+	memset(c, 0, command_len);
+	snprintf(c, command_len, "%s %s", command, filename);
+	ret = execl("/bin/sh", "/bin/sh", "-c", c, NULL);
+
+	free(c);
 	
 	// if we are here, we ahve a problem:
 	msg(MSG_FATAL, "Could not exec command \"%s\": %s", command, strerror(errno));
