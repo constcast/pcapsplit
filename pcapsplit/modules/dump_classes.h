@@ -27,6 +27,7 @@ struct class_t {
 	const char* class_name;
 	uint32_t cutoff;
 	int linktype;
+	const char* post_process;
 	struct dumper_tool* dumper;
 	
 	uint64_t file_size;

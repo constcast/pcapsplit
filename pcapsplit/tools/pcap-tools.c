@@ -17,23 +17,34 @@
 
 #include <stdlib.h>
 #include <tools/msg.h>
+#include <string.h>
+#include <unistd.h>
 
 struct dumper_tool* dumper_tool_open_file(const char* filename, int linktype)
 {
 	struct dumper_tool* ret = (struct dumper_tool*)malloc(sizeof(struct dumper_tool));
+	ret->filename = malloc(strlen(filename) + 1);
+	if (!ret->filename) {
+		msg(MSG_ERROR, "Could not allocate memory for filename");
+		goto out;
+	}
+	memcpy(ret->filename, filename, strlen(filename));
+	ret->filename[strlen(filename)] = 0;
 	ret->out_descriptor = pcap_open_dead(linktype, 65535);
 	if (!ret->out_descriptor) {
 		msg(MSG_ERROR, "Error on pcap_open_dead!");
-		goto out;
+		goto out2;
 	}
 	
 	ret->dumper = pcap_dump_open(ret->out_descriptor, filename);
 	if (!ret->dumper) {
 		msg(MSG_ERROR, "Error opening %s: %s", filename, pcap_geterr(ret->out_descriptor));
-		goto out;
+		goto out2;
 	}
 
 	return ret;
+out2: 
+	free(ret->filename);
 out: 
 	free(ret);
 	return NULL;
@@ -46,6 +57,7 @@ int dumper_tool_close_file(struct dumper_tool** dumper)
 		pcap_dump_close((*dumper)->dumper);
 	}
 
+	free((*dumper)->filename);
 	free(*dumper);
 	dumper = NULL;
 	

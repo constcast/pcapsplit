@@ -26,10 +26,12 @@
 #include <string.h>
 #include <pcap.h>
 #include <errno.h>
+#include <unistd.h>
 
 #define MAX_FILENAME 65535
 
 int fd_handle_packet(struct class_t* t, struct packet* p, struct connection* c);
+int perform_postprocessing(const char* command, const char* filename);
 
 struct dumping_module* flowstart_dumper_new()
 {
@@ -181,7 +183,10 @@ int fd_handle_packet(struct class_t* class, struct packet* p, struct connection*
 		if (class->file_size && (class->file_traffic_seen + p->header.len) > class->file_size) {
 			char pcap_file[MAX_FILENAME];
 			// finish old file 
+			if (class->post_process)
+				perform_postprocessing(class->post_process, class->dumper->filename);
 			dumper_tool_close_file(&class->dumper);
+
 			// open new file
 			snprintf(pcap_file, MAX_FILENAME, "%s%s-%08x", class->prefix, class->class_name, class->suffix);
 			class->suffix++;
@@ -206,3 +211,27 @@ int fd_handle_packet(struct class_t* class, struct packet* p, struct connection*
 
 	return 0;
 }
+
+int perform_postprocessing(const char* command, const char* filename)
+{
+	msg(MSG_INFO, "starting post-processing with command %s on file %s", command, filename);
+	pid_t pid = fork();
+	if (pid < 0) {
+		msg(MSG_FATAL, "Error forking process! Cannot post-process file!");
+		return -1;
+	} else if (pid > 0) {
+		// we are the parent. we don't have to do anything
+		return 0;
+	}
+
+	// child code: exec the command
+	int ret;
+	ret = execl(command, command, filename, NULL);
+	
+	// if we are here, we ahve a problem:
+	msg(MSG_FATAL, "Could not exec command \"%s\": %s", command, strerror(errno));
+	exit(-1);
+	
+	return -1;
+}
+

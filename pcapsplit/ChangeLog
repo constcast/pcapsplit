@@ -1,5 +1,6 @@
 Version 0.3:
 	- Introduce multi-threaded capturing/storing framework
+	- Post processing of finished pcap files
 
 Version 0.2:
 	- New module for storing the first N bytes of each connection to a pcap file

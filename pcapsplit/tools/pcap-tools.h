@@ -21,6 +21,7 @@
 struct dumper_tool {
 	pcap_t* out_descriptor;
 	pcap_dumper_t* dumper;	
+	char* filename;
 };
 
 struct dumper_tool* dumper_tool_open_file(const char* filename, int linktype);

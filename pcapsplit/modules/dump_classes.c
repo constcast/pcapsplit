@@ -153,6 +153,8 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
 		f->file_traffic_seen = 0;
 		f->disk_traffic_seen = 0;
 		f->linktype = linktype;
+		snprintf(conf_name, MAX_FILENAME, "post_process%d", class_no);
+		f->post_process = config_get_option(c, module_name, conf_name);
 
                 le->data = f;
                 list_push_back(ret, le);

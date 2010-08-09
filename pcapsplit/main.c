@@ -57,6 +57,13 @@ void sig_handler(int sig)
 	}
 }
 
+void sig_chld_handler(int sig)
+{
+	int loc;
+	// we don't care at all. just remove the zombie
+	wait(&loc);	
+}
+
 static void print_stats(pcap_t* pcap, uint64_t packets_captured, struct packet_pool* pool) 
 {
 	struct pcap_stat stat;
@@ -144,7 +151,11 @@ int main(int argc, char** argv)
 
 	// install signal handler
 	if (SIG_ERR == signal(SIGINT, sig_handler)) {
-		msg(MSG_ERROR, "Could not install signal handler.");
+		msg(MSG_ERROR, "Could not install signal handler for SIGINT.");
+		return -1;
+	}
+	if (SIG_ERR == signal(SIGCHLD, sig_chld_handler)) {
+		msg(MSG_ERROR, "Could not install signal handler for SIGCHLD");
 		return -1;
 	}
 
