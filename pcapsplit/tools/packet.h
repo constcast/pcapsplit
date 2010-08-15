@@ -33,6 +33,8 @@
 #define IP6(p) (struct ip6_hdr*)(p + ETHER_HDR_LEN)
 #define IP_HDR_LEN(ip)      (ip->ip_hl*4)
 
+struct connection;
+
 struct packet {
 	struct pcap_pkthdr header;
 	unsigned char* data;
@@ -44,6 +46,7 @@ struct packet {
 	struct ip6_hdr* ip6;
 
 	struct list_element_t* elem;	
+	struct connection* connection;
 };
 
 struct packet_pool;

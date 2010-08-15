@@ -21,6 +21,7 @@
 #include <pthread.h>
 
 #include <tools/msg.h>
+#include <tools/connection.h>
 
 struct packet_pool {
 	struct packet* pool;
@@ -109,6 +110,7 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 		return -1;
 	}
 	ret = e->data;
+
 	memcpy(&ret->header, header, sizeof(*header));
 	memcpy(ret->data, data, header->caplen);
 	uint16_t et = ntohs(ETHERNET(data)->ether_type);
@@ -136,10 +138,17 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 	} else {
 		//msg(MSG_ERROR, "Well. Something is weird here!: Ethertype: %d, IP vesrsion: %d", et, (IP(data + offset))->ip_v);
 	}
-
-	pthread_mutex_lock(&pool->used_lock);
-	list_push_back(pool->used_list, e);
-	pthread_mutex_unlock(&pool->used_lock);
+	
+	// only handle packets if its connection is still active
+	ret->connection = connection_get(ret);
+	// TODO: we should discard the packet earlier, at best before copying the packet content
+	if (ret->connection->active) {
+		pthread_mutex_lock(&pool->used_lock);
+		list_push_back(pool->used_list, e);
+		pthread_mutex_unlock(&pool->used_lock);
+	} else {
+		packet_free(pool, ret);
+	}
 
 	return 0;
 }

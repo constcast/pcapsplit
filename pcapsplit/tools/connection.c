@@ -184,6 +184,9 @@ struct connection* connection_new(const struct packet* p)
 			ret = NULL;
 		}
 	}
+	if (ret) {
+		ret->active = 1;
+	}
 	
 	return ret;
 }

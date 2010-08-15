@@ -48,9 +48,6 @@ struct flowstart_dumper_data {
 
 int flowstart_dumper_init(struct dumping_module* m, struct config* c)
 {
-	uint32_t conn_no = 0;
-	uint32_t conn_max = 0;
-	uint32_t flow_timeout = 0;
 	char pcap_file[MAX_FILENAME];
 
 	struct flowstart_dumper_data* sdata = (struct flowstart_dumper_data*)malloc(sizeof(struct flowstart_dumper_data));
@@ -62,26 +59,6 @@ int flowstart_dumper_init(struct dumping_module* m, struct config* c)
 	sdata->filter_list = classes_create(FLOWSTART_DUMPER_NAME, c, m->linktype);
 	if (!sdata->filter_list)
 		goto out2;
-
-	if (!config_get_option(c, FLOWSTART_DUMPER_NAME, "init_connection_pool")) {
-		msg(MSG_ERROR, "flowstart_dumper: \"init_connection_pool\" missing in section %s", FLOWSTART_DUMPER_NAME);
-		goto out2;
-	}
-	conn_no = atoi(config_get_option(c, FLOWSTART_DUMPER_NAME, "init_connection_pool"));
-
-	if (!config_get_option(c, FLOWSTART_DUMPER_NAME, "max_connection_pool")) {
-		msg(MSG_ERROR, "flowstart_dumper: \"max_connection_pool\" missing in section %s", FLOWSTART_DUMPER_NAME);
-		goto out2;
-	}
-	conn_max = atoi(config_get_option(c, FLOWSTART_DUMPER_NAME, "max_connection_pool"));
-
-	if (!config_get_option(c, FLOWSTART_DUMPER_NAME, "flow_timeout")) {
-		msg(MSG_ERROR, "flowstart_dumper: \"flow_timeout\" missing in section %s", FLOWSTART_DUMPER_NAME);
-		goto out2;
-	}
-	flow_timeout = atoi(config_get_option(c, FLOWSTART_DUMPER_NAME, "flow_timeout"));
-
-	connection_init_pool(conn_no, conn_max, flow_timeout);
 
 	struct list_element_t* i = sdata->filter_list->head;
 	while (i) {
@@ -120,7 +97,6 @@ int flowstart_dumper_finish(struct dumping_module* m)
 	}
 	list_destroy(d->filter_list);
 	free(d);
-	connection_deinit_pool();
 	m->module_data = NULL;
 	return 0;
 }
@@ -128,14 +104,13 @@ int flowstart_dumper_finish(struct dumping_module* m)
 int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 {
 	struct flowstart_dumper_data* d = (struct flowstart_dumper_data*)m->module_data;
-	struct connection* c = connection_get(p);
-	uint32_t max_cutoff = 0;;
+	struct connection* c = p->connection;
+	uint32_t max_cutoff = 0;
 	if (!c) {
 		//msg(MSG_FATAL, "Something is fucked up: Did not get a connection object! You should never see this message.");
 		return 0;
 	}
 
-	c->last_seen = p->header.ts.tv_sec;
 
 	struct list_element_t* i = d->filter_list->head;
 	while (i)  {
@@ -153,7 +128,6 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 	// any traffic
 	if (c->traffic_seen == 0) {
 		connection_get_stats()->active_conns++;
-		c->active = 1;
 	}
 
 	// mark connetion as inactive, if the current paket would exeed the

@@ -142,6 +142,9 @@ int main(int argc, char** argv)
 	int snaplen = 65535;
 	uint32_t packet_pool_size = 1;
 	pthread_t worker_id;
+	uint32_t conn_no = 0;
+	uint32_t conn_max = 0;
+	uint32_t flow_timeout = 0;
 
 	if (argc != 2) {
 		usage(argv[0]);
@@ -190,6 +193,28 @@ int main(int argc, char** argv)
 	if (tmp) {
 		packet_pool_size = atoi(tmp);
 	}
+
+	// init connection pool
+	if (!config_get_option(conf, MAIN_NAME, "init_connection_pool")) {
+		msg(MSG_ERROR, "main: \"init_connection_pool\" missing in section %s", MAIN_NAME);
+		return -1;
+	}
+	conn_no = atoi(config_get_option(conf, MAIN_NAME, "init_connection_pool"));
+
+	if (!config_get_option(conf, MAIN_NAME, "max_connection_pool")) {
+		msg(MSG_ERROR, "main: \"max_connection_pool\" missing in section %s", MAIN_NAME);
+		return -1;
+	}
+	conn_max = atoi(config_get_option(conf, MAIN_NAME, "max_connection_pool"));
+
+	if (!config_get_option(conf, MAIN_NAME, "flow_timeout")) {
+		msg(MSG_ERROR, "main: \"flow_timeout\" missing in section %s", MAIN_NAME);
+		return -1;
+	}
+	flow_timeout = atoi(config_get_option(conf, MAIN_NAME, "flow_timeout"));
+
+	connection_init_pool(conn_no, conn_max, flow_timeout);
+
 
 	struct packet_pool* packet_pool = packet_pool_init(packet_pool_size, snaplen);
 	struct thread_data worker_data;
@@ -264,6 +289,7 @@ int main(int argc, char** argv)
 	free(useless);
 	pthread_join(worker_id, NULL);
 	dumpers_finish(&dumps);
+	connection_deinit_pool();
 	packet_pool_deinit(packet_pool);
 	config_free(conf);
 
