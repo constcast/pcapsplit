@@ -51,6 +51,8 @@ void dumpers_create_all(struct dumpers* d, struct config* c, int linktype, int s
 	size_t mod_count = config_get_module_names(c, module_names);
 	size_t i;
 
+	msg(MSG_INFO, "Found %d modules in configuration file.", mod_count);
+
 	if (mod_count > MAX_MODULES) {
 		msg(MSG_ERROR, "More modules in config files than allowed!");
 		return;
@@ -59,6 +61,7 @@ void dumpers_create_all(struct dumpers* d, struct config* c, int linktype, int s
 		if (strcmp(module_names[i], MAIN_NAME) == 0) {
 			continue;
 		}
+		msg(MSG_INFO, "Initializing module \"%s\" ...", module_names[i]);
 		struct dumping_module* m = get_module(module_names[i]);
 		if (m == NULL) {
 			msg(MSG_ERROR, "No such module %s", module_names[i]);
@@ -72,5 +75,6 @@ void dumpers_create_all(struct dumpers* d, struct config* c, int linktype, int s
 		}
 		dumpers_add(d, m);
 	}
+	msg(MSG_INFO, "Initialized all modules ...");
 }
 

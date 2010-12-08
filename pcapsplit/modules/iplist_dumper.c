@@ -18,11 +18,20 @@
 #include <module_list.h>
 #include <tools/pcap-tools.h>
 #include <tools/msg.h>
+#include <tools/uthash.h>
 
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 
 #define MAX_FILENAME 65535
+#define MAX_LINE 256
 
 struct dumping_module* iplist_dumper_new()
 {
@@ -33,9 +42,17 @@ struct dumping_module* iplist_dumper_new()
 	return ret;
 }
 
+struct host_data{
+	// TODO: ipv6
+	uint32_t address;
+	UT_hash_handle hh;
+};
+
 struct iplist_dumper_data {
 	char dump_filename[MAX_FILENAME];
+	char iplist_filename[MAX_FILENAME];
 	struct dumper_tool* dumper;
+	struct host_data* host_data;
 };
 
 
@@ -44,6 +61,8 @@ int iplist_dumper_init(struct dumping_module* m, struct config* c)
 	struct iplist_dumper_data* data = (struct iplist_dumper_data*)malloc(
 		sizeof(struct iplist_dumper_data));
 
+	data->host_data = NULL;
+
 	const char* tmp = config_get_option(c, IPLIST_DUMPER_NAME, "filename");
 	if (tmp == NULL) {
 		msg(MSG_ERROR, "%s: no filename in config file", IPLIST_DUMPER_NAME);
@@ -51,11 +70,35 @@ int iplist_dumper_init(struct dumping_module* m, struct config* c)
 	}
 	strncpy(data->dump_filename, tmp, MAX_FILENAME);
 
+	tmp = config_get_option(c, IPLIST_DUMPER_NAME, "iplist_file");
+	if (tmp == NULL) {
+		msg(MSG_ERROR, "%s: no iplist_file in config file", IPLIST_DUMPER_NAME);
+		return -1;
+	}
+	strncpy(data->iplist_filename, tmp, MAX_FILENAME);
+
+	// pull in ip list
+	FILE* iplist = fopen(data->iplist_filename, "r");
+	if (!iplist) {
+		msg(MSG_ERROR, "%s: Cannot open iplist file %s: %s", IPLIST_DUMPER_NAME, data->iplist_filename, strerror(errno));
+		return -1;
+	}
+	char line[MAX_LINE];
+	while (fgets(line, MAX_LINE, iplist)) {
+		in_addr_t addr = inet_addr(line);
+		struct host_data* hd = (struct host_data*)malloc(sizeof(struct host_data));
+		bzero(hd, sizeof(struct host_data));
+		hd->address = addr;
+		HASH_ADD(hh, data->host_data, address, sizeof(uint32_t), hd);
+	}
+	fclose(iplist);
+
 	data->dumper = dumper_tool_open_file(data->dump_filename, m->linktype);
 	if (!data->dumper)
 		goto out;
 	
 	m->module_data = (void*)data;
+
 	return 0;
 
 out: 
@@ -75,7 +118,18 @@ int iplist_dumper_finish(struct dumping_module* m)
 int iplist_dumper_run(struct dumping_module* m, struct packet* p)
 {
 	struct iplist_dumper_data* d = (struct iplist_dumper_data*)m->module_data;
-	
-	dumper_tool_dump(d->dumper, &p->header, p->data);
-	return 0;
+
+	if (p->is_ip) {
+		// TODO: implement
+		/*
+		uint32_t address = 
+		struct host_data h, *found;
+		bzero(h, sizeof(host_data));
+		*/
+		
+		dumper_tool_dump(d->dumper, &p->header, p->data); 
+	}
+	return 0; 
 }
+
+
