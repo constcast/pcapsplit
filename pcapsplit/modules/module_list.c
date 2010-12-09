@@ -18,6 +18,7 @@
 #include <modules/size_dumper.h>
 #include <modules/filter_dumper.h>
 #include <modules/flowstart_dumper.h>
+#include <modules/iplist_dumper.h>
 
 #include <string.h>
 
@@ -33,6 +34,8 @@ struct dumping_module* get_module(const char* name)
 		// no module for main
 	} else if (strcmp(name, FLOWSTART_DUMPER_NAME) == 0) {
 		ret = flowstart_dumper_new();
+	} else if (strcmp(name, IPLIST_DUMPER_NAME) == 0) {
+		ret = iplist_dumper_new();
 	}
 
 	return ret;
