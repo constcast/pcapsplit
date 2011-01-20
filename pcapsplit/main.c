@@ -152,7 +152,6 @@ int main(int argc, char** argv)
 	}
 
 	msg_setlevel(MSG_INFO);
-	msg(MSG_INFO, "%s is initializing ...", argv[0]);
 
 	// install signal handler
 	if (SIG_ERR == signal(SIGINT, sig_handler)) {
@@ -172,6 +171,14 @@ int main(int argc, char** argv)
 		msg(MSG_ERROR, "Invalid config. Abort!");
 		return 0;
 	}
+	tmp = config_get_option(conf, MAIN_NAME, "quiet");
+	if (tmp) {
+		if (!strcmp(tmp, "yes")) {
+			msg_setlevel(-1);
+		}
+	}
+
+	msg(MSG_INFO, "%s is initializing ...", argv[2]);
 
 	pcap_file = config_get_option(conf, MAIN_NAME, "pcapfile");
 	capture_interface = config_get_option(conf, MAIN_NAME, "interface");

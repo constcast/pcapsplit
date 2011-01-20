@@ -63,8 +63,12 @@ int flowstart_dumper_init(struct dumping_module* m, struct config* c)
 	struct list_element_t* i = sdata->filter_list->head;
 	while (i) {
 		struct class_t* t = i->data;
-		snprintf(pcap_file, MAX_FILENAME, "%s%s-%08x", t->prefix, t->class_name, t->suffix);
-		t->suffix++;
+		if (t->is_stdout) {
+			snprintf(pcap_file, 2, "-");
+		} else {
+			snprintf(pcap_file, MAX_FILENAME, "%s%s-%08x", t->prefix, t->class_name, t->suffix);
+			t->suffix++;
+		}
 		t->dumper = dumper_tool_open_file(pcap_file, m->linktype);
 		if (!t->dumper) {
 			msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
@@ -159,15 +163,19 @@ int fd_handle_packet(struct class_t* class, struct packet* p, struct connection*
 			// finish old file 
 			if (class->post_process)
 				perform_postprocessing(class->post_process, class->dumper->filename);
-			dumper_tool_close_file(&class->dumper);
 
-			// open new file
-			snprintf(pcap_file, MAX_FILENAME, "%s%s-%08x", class->prefix, class->class_name, class->suffix);
-			class->suffix++;
-			class->dumper = dumper_tool_open_file(pcap_file, class->linktype);
-			if (!class->dumper) {
-				msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
-				return -1;
+			// close old file in case we are not dumping to stdout
+			if (!class->is_stdout) {
+				dumper_tool_close_file(&class->dumper);
+
+				// open new file, if not dumping to stdout
+				snprintf(pcap_file, MAX_FILENAME, "%s%s-%08x", class->prefix, class->class_name, class->suffix);
+				class->suffix++;
+				class->dumper = dumper_tool_open_file(pcap_file, class->linktype);
+				if (!class->dumper) {
+					msg(MSG_ERROR, "filter_dumper: Cannot open pcap file %s", pcap_file);
+					return -1;
+				}
 			}
 			class->file_traffic_seen = p->header.len;
 			// update statistics
@@ -179,10 +187,7 @@ int fd_handle_packet(struct class_t* class, struct packet* p, struct connection*
 		}
 
 		dumper_tool_dump(class->dumper , &p->header, p->data);
-	} else {
-		//connection_free(c);
-	}
-
+	} 
 	return 0;
 }
 

@@ -69,6 +69,7 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
 	char conf_name[MAX_FILENAME];	
 	uint64_t file_size = 0;
 	uint64_t disk_size = 0;
+	uint8_t is_stdout = 0;
 	pcap_t* p;
 
         ret = list_create();
@@ -89,6 +90,10 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
                 msg(MSG_ERROR, "%s: missing \"file_prefix\". Cannot configure %s", module_name, module_name);
                 goto out2;
         }
+	if (strlen(prefix) == 1 && !strcmp(prefix, "-")) {
+		is_stdout = 1;
+		msg(MSG_DEBUG, "%s outputing to stdout!", module_name);
+	}
 
         p = pcap_open_dead(linktype, 65535);
         // build filters from module confiugration
@@ -145,6 +150,7 @@ list_t* classes_create(const char* module_name, struct config* c, int linktype)
                 }
 
                	f->prefix = prefix;
+		f->is_stdout = is_stdout;
 		f->class_name = class_name;
 		f->cutoff = cutoff;
 		f->file_size = file_size;

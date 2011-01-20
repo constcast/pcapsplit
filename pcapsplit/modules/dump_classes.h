@@ -24,6 +24,7 @@
 struct class_t {
         struct bpf_program filter_program;
 	const char* prefix;
+	uint8_t is_stdout;
 	const char* class_name;
 	uint32_t cutoff;
 	int linktype;
