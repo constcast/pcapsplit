@@ -1,4 +1,4 @@
-//  Copyright (C) 2008-2010 Lothar Braun <lothar@lobraun.de>
+//  Copyright (C) 2008-2011 Lothar Braun <lothar@lobraun.de>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -145,6 +145,7 @@ int main(int argc, char** argv)
 	uint32_t conn_no = 0;
 	uint32_t conn_max = 0;
 	uint32_t flow_timeout = 0;
+	int print_stats_enabled = 0;
 
 	if (argc != 2) {
 		usage(argv[0]);
@@ -171,10 +172,21 @@ int main(int argc, char** argv)
 		msg(MSG_ERROR, "Invalid config. Abort!");
 		return 0;
 	}
+
+	// check if we should have any output over msg
+	// quite mode is necessary when we are dumping to stdout
 	tmp = config_get_option(conf, MAIN_NAME, "quiet");
 	if (tmp) {
 		if (!strcmp(tmp, "yes")) {
 			msg_setlevel(-1);
+		}
+	}
+	
+	// do we want to periodically output statistics on dropped/received packets?
+	tmp = config_get_option(conf, "MAIN_NAME", "packet_stats");
+	if (tmp) {
+		if (!strcmp(tmp, "yes")) {
+			print_stats_enabled = 1;
 		}
 	}
 
@@ -272,9 +284,11 @@ int main(int argc, char** argv)
 	while (running) {
 		if (NULL != (data = pcap_next(pfile, &pcap_hdr))) {
 			captured++;
-			if (pcap_hdr.ts.tv_sec - last_stats > stats_interval && is_live) {
-				last_stats = pcap_hdr.ts.tv_sec;
-				print_stats(pfile, captured, packet_pool);
+			if (print_stats_enabled) {
+				if (pcap_hdr.ts.tv_sec - last_stats > stats_interval && is_live) {
+					last_stats = pcap_hdr.ts.tv_sec;
+					print_stats(pfile, captured, packet_pool);
+				}
 			}
 			packet_new(packet_pool, &pcap_hdr, data);
 		} else {
