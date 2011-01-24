@@ -46,8 +46,12 @@ static uint8_t has_init = 0;
 
 static void stats_connection_finished(struct connection* c)
 {
-	//msg(MSG_DEBUG, "Conn: %llu %u %u %llu", conn_num, c->first_seen, c->last_seen, c->traffic_seen);
-	//conn_num++;
+	//msg(MSG_DEBUG, "Conn: %u %u %llu", c->first_seen, c->last_seen, c->traffic_seen);
+	uint32_t tmp = floorl((long double)c->traffic_seen / sm_data.binwidth);
+	if (tmp >= sm_data.bin_count) {
+		tmp = sm_data.bin_count - 1;
+	}
+	sm_data.bins[tmp]++;
 }
 
 int stats_module_init(struct dumping_module* m, struct config* c)
@@ -114,6 +118,11 @@ int stats_module_init(struct dumping_module* m, struct config* c)
 
 int stats_module_finish(struct dumping_module* m)
 {
+	uint32_t i;
+	for (i = 0; i != sm_data.bin_count; ++i) {
+		msg(MSG_DEBUG, "%lu %u", i * sm_data.binwidth, sm_data.bins[i]);
+	}
+
 	free(sm_data.bins);
 	return 0;
 }
