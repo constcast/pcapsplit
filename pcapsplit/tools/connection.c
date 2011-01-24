@@ -148,6 +148,8 @@ int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t ti
 		connection_pool.stats.free_conns++;
 	}
 
+	conn_finished_cb = NULL;
+
 	return 0;
 }
 
@@ -193,6 +195,10 @@ struct connection* connection_new(const struct packet* p)
 
 int connection_free(struct connection* c)
 {
+	if (conn_finished_cb) {
+		conn_finished_cb(c);
+	}
+
 	HASH_FIND(hh, connections, &c->key, sizeof(record_key_t), found_conn);
 	if (found_conn) {
 		HASH_DEL(connections, c);
