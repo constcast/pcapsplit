@@ -1,4 +1,4 @@
-//  Copyright (C) 2010 Lothar Braun <lothar@lobraun.de>
+//  Copyright (C) 2010-2011 Lothar Braun <lothar@lobraun.de>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ struct connection {
 	
 	struct list_element_t element;
 
+	time_t first_seen;
 	time_t last_seen;
 	uint32_t traffic_seen;
 	uint8_t active;
@@ -76,5 +77,8 @@ uint32_t connection_get_used();
 uint32_t connection_get_free();
 
 struct connection_stats* connection_get_stats();
+
+// callbacks that can be used for statistics
+void (*conn_finished_cb)(struct connection* c);
 
 #endif

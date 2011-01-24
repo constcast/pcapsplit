@@ -1,4 +1,4 @@
-//  Copyright (C) 2010 Lothar Braun <lothar@lobraun.de>
+//  Copyright (C) 2010-2011 Lothar Braun <lothar@lobraun.de>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by

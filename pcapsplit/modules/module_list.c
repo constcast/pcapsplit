@@ -1,4 +1,4 @@
-//  Copyright (C) 2008-2010 Lothar Braun <lothar@lobraun.de>
+//  Copyright (C) 2008-2011 Lothar Braun <lothar@lobraun.de>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include <modules/filter_dumper.h>
 #include <modules/flowstart_dumper.h>
 #include <modules/iplist_dumper.h>
+#include <modules/stats_module.h>
 
 #include <string.h>
 
@@ -36,6 +37,8 @@ struct dumping_module* get_module(const char* name)
 		ret = flowstart_dumper_new();
 	} else if (strcmp(name, IPLIST_DUMPER_NAME) == 0) {
 		ret = iplist_dumper_new();
+	} else if (strcmp(name, STATS_MODULE_NAME) == 0) {
+		ret = stats_module_new();
 	}
 
 	return ret;

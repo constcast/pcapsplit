@@ -1,4 +1,4 @@
-//  Copyright (C) 2010 Lothar Braun <lothar@lobraun.de>
+//  Copyright (C) 2010-2011 Lothar Braun <lothar@lobraun.de>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -225,6 +225,7 @@ struct connection* connection_get(const struct packet* p)
 	} else {
 		found_conn = connection_new(p);
 		if (found_conn) {
+			found_conn->first_seen = p->header.ts.tv_sec;
 			found_conn->last_seen = p->header.ts.tv_sec;
 			key_fill(&found_conn->key, p);
 			//msg(MSG_ERROR, "New connection: %d %d %d %d", found_conn->key.c_v4.ip1, found_conn->key.c_v4.ip2, found_conn->key.c_v4.p1, found_conn->key.c_v4.p2);
