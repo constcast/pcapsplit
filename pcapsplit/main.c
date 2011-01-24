@@ -309,6 +309,12 @@ int main(int argc, char** argv)
 	packet_new(packet_pool, &pcap_hdr, useless);
 	free(useless);
 	pthread_join(worker_id, NULL);
+
+	// ok, the second worker is stopped right now
+	// we are therefore the only thread that works on the connection pool.
+	// lets timeout all active connnections to update the statistics (e.g. for stats_module)
+	connection_flush_all_active_conns();
+
 	dumpers_finish(&dumps);
 	connection_deinit_pool();
 	packet_pool_deinit(packet_pool);

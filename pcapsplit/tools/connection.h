@@ -69,6 +69,7 @@ struct connection_stats {
 
 int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t timeout);
 int connection_deinit_pool();
+int connection_flush_all_active_conns();
 
 struct connection* connection_get(const struct packet* p);
 int connection_free(struct connection*);

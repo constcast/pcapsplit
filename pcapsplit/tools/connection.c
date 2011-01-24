@@ -254,3 +254,12 @@ struct connection_stats* connection_get_stats()
 	return &connection_pool.stats;
 }
 
+int connection_flush_all_active_conns()
+{
+	struct list_element_t* i;
+
+	while ((i = connection_pool.used_list->head)) {
+		connection_free(i->data);
+	}
+	return 0;
+}
