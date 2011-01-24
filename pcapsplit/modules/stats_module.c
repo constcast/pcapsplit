@@ -31,13 +31,23 @@ struct dumping_module* stats_module_new()
 	return ret;
 }
 
+static uint64_t conn_num = 0;
+static uint8_t has_init = 0;
+
 static void stats_connection_finished(struct connection* c)
 {
-	msg(MSG_DEBUG, "Finished connection");
+	msg(MSG_DEBUG, "Conn: %llu %u %u %llu", conn_num, c->first_seen, c->last_seen, c->traffic_seen);
+	conn_num++;
 }
 
 int stats_module_init(struct dumping_module* m, struct config* data)
 {
+	if (has_init) {
+		msg(MSG_FATAL, "stats module has already been initiatlized. It may not be instanciated twice ...");
+		return -1;
+	}
+	has_init = 1;
+	conn_num = 0;
 	conn_finished_cb = stats_connection_finished;
 	return 0;
 }
@@ -50,5 +60,6 @@ int stats_module_finish(struct dumping_module* m)
 
 int stats_module_run(struct dumping_module* m, struct packet* p)
 {
+	// do nothing on the packet
 	return 0;
 }

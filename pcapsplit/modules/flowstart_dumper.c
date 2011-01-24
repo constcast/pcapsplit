@@ -128,25 +128,16 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 		i = i->next;
 	}
 
-	// mark connection as active if it has not yet received
-	// any traffic
-	if (c->traffic_seen == 0) {
-		connection_get_stats()->active_conns++;
-	}
-
 	// mark connetion as inactive, if the current paket would exeed the
 	// maximum connection limit of all classes that matches the connection
-
 	// TODO: do we want to use len or caplen?
 	if (c->traffic_seen <= max_cutoff && (c->traffic_seen + p->header.len > max_cutoff)) {
 		connection_get_stats()->active_conns--;
 		if (!c->active) {
 			msg(MSG_ERROR, "Active/Inactive connection calculation is fucked up!. Fix This!");
 		}
-		c->active = 0;
-		
+		c->active = 0;		
 	}
-	c->traffic_seen += p->header.len;
 
 	//msg(MSG_INFO, "No matching filter for packet: Skipping packet!");
 
@@ -155,10 +146,10 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 
 int fd_handle_packet(struct class_t* class, struct packet* p, struct connection* c)
 {
-	if (!class->cutoff || c->traffic_seen <= class->cutoff) {
+	if (!class->cutoff || c->traffic_seen <= (class->cutoff + p->header.len)) {
 		// Check whether we need to open a new file
 		// we have to open a new file only if class_file_size if defined
-		if (class->file_size && (class->file_traffic_seen + p->header.len) > class->file_size) {
+		if (class->file_size && (class->file_traffic_seen) > class->file_size) {
 			char pcap_file[MAX_FILENAME];
 			// finish old file 
 			if (class->post_process)

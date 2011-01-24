@@ -238,6 +238,14 @@ struct connection* connection_get(const struct packet* p)
 			HASH_ADD(hh, connections, key, sizeof(record_key_t), found_conn);
 		}
 	}
+	// build up basic statistics for the following modules
+      
+	// mark connection as active if it has not yet received any traffic
+	if (found_conn->traffic_seen == 0) {
+		connection_get_stats()->active_conns++;
+	}
+	found_conn->traffic_seen += p->header.len;
+
 	return found_conn;
 }
 

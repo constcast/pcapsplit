@@ -51,7 +51,7 @@ struct connection {
 
 	time_t first_seen;
 	time_t last_seen;
-	uint32_t traffic_seen;
+	uint64_t traffic_seen;
 	uint8_t active;
 	
 	UT_hash_handle hh;
