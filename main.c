@@ -182,6 +182,24 @@ int main(int argc, char** argv)
 		}
 	}
 	
+	// check if we have a config statement that changes message level
+	tmp = config_get_option(conf, MAIN_NAME, "msg_level");
+	if (tmp) {
+		if (!strcmp(tmp, "fatal")) {
+			msg_setlevel(MSG_FATAL);
+		} else if (!strcmp(tmp, "error")) {
+			msg_setlevel(MSG_ERROR);
+		} else if (!strcmp(tmp, "debug")) {
+			msg_setlevel(MSG_DEBUG);
+		} else if (!strcmp(tmp, "info")) {
+			msg_setlevel(MSG_INFO);
+		} else if (!strcmp(tmp, "stats")) {
+			msg_setlevel(MSG_STATS);
+		} else {
+			msg(MSG_FATAL, "Unknown msg level ...");
+		}
+	}
+	
 	// do we want to periodically output statistics on dropped/received packets?
 	tmp = config_get_option(conf, "MAIN_NAME", "packet_stats");
 	if (tmp) {
