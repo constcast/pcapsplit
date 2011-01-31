@@ -2,7 +2,7 @@
 #define _MSG_H_
 
 #define MSG_BLANK 256
-#define MSG_STATS 100
+#define MSG_STATS 5
 #define MSG_INFO 4
 #define MSG_DEBUG 3
 #define MSG_ERROR 2

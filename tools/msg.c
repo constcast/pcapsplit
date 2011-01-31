@@ -11,7 +11,7 @@
 #include <stdarg.h>
 
 static int msg_level=MSG_DEFAULT;
-static char *MSG_TAB[]={ "FATAL  ", "TRUMANBOX", "ERROR  ", "DEBUG  ", "INFO   ", 0};
+static char *MSG_TAB[]={ "FATAL  ", "TRUMANBOX", "ERROR  ", "DEBUG  ", "INFO   ", "STATS   ", 0};
 
 void msg_setlevel(int l)
 {
