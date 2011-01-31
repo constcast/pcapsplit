@@ -134,7 +134,7 @@ int flowstart_dumper_run(struct dumping_module* m, struct packet* p)
 	if (c->traffic_seen <= max_cutoff && (c->traffic_seen + p->header.len > max_cutoff)) {
 		connection_get_stats()->active_conns--;
 		if (!c->active) {
-			msg(MSG_ERROR, "Active/Inactive connection calculation is fucked up!. Fix This!");
+			//msg(MSG_ERROR, "Active/Inactive connection calculation is fucked up!. Fix This!");
 		}
 		c->active = 0;		
 	}

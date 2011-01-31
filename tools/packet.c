@@ -110,7 +110,7 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 	pthread_mutex_unlock(&pool->free_lock);
 
 	pool->packets_seen++;
-	if (pool->packets_seen % 100000) {
+	if (!(pool->packets_seen % 1000000)) {
 		msg(MSG_STATS, "Seen: %llu, Used: %llu, Free: %llu", pool->packets_seen, pool->used_list->size, pool->free_list->size);
 	}
 
