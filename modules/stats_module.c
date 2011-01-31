@@ -120,7 +120,7 @@ int stats_module_finish(struct dumping_module* m)
 {
 	uint32_t i;
 	for (i = 0; i != sm_data.bin_count; ++i) {
-		msg(MSG_DEBUG, "%lu %u", i * sm_data.binwidth, sm_data.bins[i]);
+		msg(MSG_STATS, "%lu %u", i * sm_data.binwidth, sm_data.bins[i]);
 	}
 
 	free(sm_data.bins);
