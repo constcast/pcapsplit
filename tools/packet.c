@@ -1,4 +1,4 @@
-//  Copyright (C) 2010 Lothar Braun <lothar@lobraun.de>
+//  Copyright (C) 2010-2011 Lothar Braun <lothar@lobraun.de>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -35,6 +35,8 @@ struct packet_pool {
 	pthread_mutex_t used_lock;
 
 	uint64_t packets_lost;
+
+	uint64_t packets_seen;
 };
 
 struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_size)
@@ -69,6 +71,7 @@ struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_si
 		list_push_back(ret->free_list, p->elem);
 	}
 	ret->packets_lost = 0;
+	ret->packets_seen = 0;
 
 	return ret;
 out:
@@ -105,6 +108,11 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 	struct list_element_t* e = list_pop_front(pool->free_list);
 	pthread_mutex_unlock(&pool->free_lock);
 
+	pool->packets_seen++;
+	if (pool->packets_seen % 100000) {
+		msg(MSG_STATS, "Seen: %llu, Used: %llu, Free: %llu", pool->packets_seen, pool->used_list->size, pool->free_list->size);
+	}
+
 	if (!e) {
 		pool->packets_lost++;
 		return -1;
@@ -118,7 +126,6 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 		ret->is_ip = ret->is_ip6 = 0;
 		ret->ip =  NULL;
 		ret->ip6 = NULL;
-		//msg(MSG_ERROR, "Unknown packet type: %d. What is it?", et);
 	}
 
 	uint8_t  offset = et == ETHERTYPE_VLAN?4:0; // ethernetheader is shifted by four bytes if vlan is available
@@ -134,7 +141,6 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 		ret->is_ip  = 0;
 		ret->ip = NULL;
 		ret->ip6 = IP6(ret->data);
-		//msg(MSG_ERROR, "Found IPv6 packet");
 	} else {
 		//msg(MSG_ERROR, "Well. Something is weird here!: Ethertype: %d, IP vesrsion: %d", et, (IP(data + offset))->ip_v);
 	}
