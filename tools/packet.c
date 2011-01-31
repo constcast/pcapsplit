@@ -61,6 +61,7 @@ struct packet_pool*  packet_pool_init(uint32_t pool_size, uint32_t max_packet_si
 	ret->used_list = list_create();
 	if (!ret->used_list) {
 		msg(MSG_ERROR, "Could not allocate memory for used_list");
+		goto out;
 	}
 	ret->pool = (struct packet*)malloc(pool_size * (sizeof(struct packet)));
 	for (i = 0; i != pool_size; ++i) {
