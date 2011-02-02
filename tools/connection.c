@@ -234,17 +234,14 @@ struct connection* connection_get(const struct packet* p)
 			found_conn->first_seen = p->header.ts.tv_sec;
 			found_conn->last_seen = p->header.ts.tv_sec;
 			key_fill(&found_conn->key, p);
+			connection_get_stats()->active_conns++;
 			//msg(MSG_ERROR, "New connection: %d %d %d %d", found_conn->key.c_v4.ip1, found_conn->key.c_v4.ip2, found_conn->key.c_v4.p1, found_conn->key.c_v4.p2);
 			HASH_ADD(hh, connections, key, sizeof(record_key_t), found_conn);
 		}
 	}
-	// build up basic statistics for the following modules
-      
-	// mark connection as active if it has not yet received any traffic
-	if (found_conn->traffic_seen == 0) {
-		connection_get_stats()->active_conns++;
-	}
-	found_conn->traffic_seen += p->header.len;
+
+	if (found_conn) 
+		found_conn->traffic_seen += p->header.len;
 
 	return found_conn;
 }

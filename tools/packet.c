@@ -149,7 +149,7 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 	// only handle packets if its connection is still active
 	ret->connection = connection_get(ret);
 	// TODO: we should discard the packet earlier, at best before copying the packet content
-	if (ret->connection->active) {
+	if (ret->connection && ret->connection->active) {
 		pthread_mutex_lock(&pool->used_lock);
 		list_push_back(pool->used_list, e);
 		pthread_mutex_unlock(&pool->used_lock);
