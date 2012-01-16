@@ -1,4 +1,4 @@
-//  Copyright (C) 2008-2011 Lothar Braun <lothar@lobraun.de>
+//  Copyright (C) 2012 Lothar Braun <lothar@lobraun.de>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -13,19 +13,16 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _MODULE_LIST_H_
-#define _MODULE_LIST_H_
+#ifndef _CONNSTATS_MODULE_H_
+#define _CONNSTATS_MODULE_H_
 
-#define MAIN_NAME "main"
-#define SIZE_DUMPER_NAME "size_dumper"
-#define FILTER_DUMPER_NAME "filter_dumper"
-#define FLOWSTART_DUMPER_NAME "flowstart_dumper"
-#define IPLIST_DUMPER_NAME "iplist_dumper"
-#define STATS_MODULE_NAME "stats_module"
-#define CONNSTATS_MODULE_NAME "connstats_module"
+#include "dumping_module.h"
+#include <tools/conf.h>
 
-struct dumping_module;
+struct dumping_module* connstats_module_new();
 
-struct dumping_module* get_module(const char* name);
+int connstats_module_init(struct dumping_module* m, struct config* data);
+int connstats_module_finish(struct dumping_module* m);
+int connstats_module_run(struct dumping_module* m, struct packet* p);
 
 #endif

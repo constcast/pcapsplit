@@ -20,6 +20,7 @@
 #include <modules/flowstart_dumper.h>
 #include <modules/iplist_dumper.h>
 #include <modules/stats_module.h>
+#include <modules/connstats_module.h>
 
 #include <string.h>
 
@@ -39,6 +40,8 @@ struct dumping_module* get_module(const char* name)
 		ret = iplist_dumper_new();
 	} else if (strcmp(name, STATS_MODULE_NAME) == 0) {
 		ret = stats_module_new();
+	} else if (strcmp(name, CONNSTATS_MODULE_NAME) == 0) {
+		ret = connstats_module_new();
 	}
 
 	return ret;
