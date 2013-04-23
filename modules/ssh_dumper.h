@@ -1,4 +1,4 @@
-//  Copyright (C) 2008-2013 Lothar Braun <lothar@lobraun.de>
+//  Copyright (C) 2013 Lothar Braun <braun@net.in.tum.de>
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -13,20 +13,16 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _MODULE_LIST_H_
-#define _MODULE_LIST_H_
+#ifndef _SSH_DUMPER_H_
+#define _SSH_DUMPER_H_
 
-#define MAIN_NAME "main"
-#define SIZE_DUMPER_NAME "size_dumper"
-#define FILTER_DUMPER_NAME "filter_dumper"
-#define FLOWSTART_DUMPER_NAME "flowstart_dumper"
-#define IPLIST_DUMPER_NAME "iplist_dumper"
-#define STATS_MODULE_NAME "stats_module"
-#define CONNSTATS_MODULE_NAME "connstats_module"
-#define SSH_DUMPER_NAME  "ssh_dumper"
+#include "dumping_module.h"
+#include <tools/conf.h>
 
-struct dumping_module;
+struct dumping_module* ssh_dumper_new();
 
-struct dumping_module* get_module(const char* name);
+int ssh_dumper_init(struct dumping_module* m, struct config* data);
+int ssh_dumper_finish(struct dumping_module* m);
+int ssh_dumper_run(struct dumping_module* m, struct packet* p);
 
 #endif

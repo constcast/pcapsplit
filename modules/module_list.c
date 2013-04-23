@@ -21,6 +21,7 @@
 #include <modules/iplist_dumper.h>
 #include <modules/stats_module.h>
 #include <modules/connstats_module.h>
+#include <modules/ssh_dumper.h>
 
 #include <string.h>
 
@@ -42,6 +43,8 @@ struct dumping_module* get_module(const char* name)
 		ret = stats_module_new();
 	} else if (strcmp(name, CONNSTATS_MODULE_NAME) == 0) {
 		ret = connstats_module_new();
+	} else if (strcmp(name, SSH_DUMPER_NAME) == 0) {
+		ret = ssh_dumper_new();
 	}
 
 	return ret;
