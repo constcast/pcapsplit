@@ -48,6 +48,8 @@ struct packet {
 	struct ip* ip;
 	struct ip6_hdr* ip6;
 
+	uint8_t ipheader_offset;
+
 	struct list_element_t* elem;	
 	struct connection* connection;
 };

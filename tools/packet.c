@@ -134,14 +134,16 @@ int packet_new(struct packet_pool* pool, struct pcap_pkthdr* header, const unsig
 	if ((IP(data + offset))->ip_v == 4 || et == ETHERTYPE_IP) {
 		ret->is_ip6 = 0;
 		ret->is_ip  = 1;
-		ret->ip =  IP(ret->data);
+		ret->ip =  IP(ret->data + offset);
 		ret->ip6 = NULL;
+		ret->ipheader_offset = ETHER_HDR_LEN + offset;
 		//msg(MSG_ERROR, "Found IPv4 packet");
 	} else if ((IP(data + offset))->ip_v == 6 || et == ETHERTYPE_IPV6) {
 		ret->is_ip6 = 1;
 		ret->is_ip  = 0;
 		ret->ip = NULL;
-		ret->ip6 = IP6(ret->data);
+		ret->ip6 = IP6(ret->data + offset);
+		ret->ipheader_offset = ETHER_HDR_LEN + offset;
 	} else {
 		//msg(MSG_ERROR, "Well. Something is weird here!: Ethertype: %d, IP vesrsion: %d", et, (IP(data + offset))->ip_v);
 	}
