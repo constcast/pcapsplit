@@ -53,6 +53,8 @@ struct connection {
 	time_t last_seen;
 	uint64_t traffic_seen;
 	uint8_t active;
+
+	uint64_t ssh_dumper_data;
 	
 	UT_hash_handle hh;
 };

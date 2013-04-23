@@ -116,6 +116,7 @@ void connection_reset_counters(struct connection* c)
 	c->last_seen = 0;
 	c->traffic_seen = 0;
 	c->active = 0;
+	c->ssh_dumper_data = 0;
 }
 
 int connection_init_pool(uint32_t pool_size, uint32_t max_pool_size, uint32_t timeout)
@@ -240,8 +241,9 @@ struct connection* connection_get(const struct packet* p)
 		}
 	}
 
-	if (found_conn) 
+	if (found_conn)  {
 		found_conn->traffic_seen += p->header.len;
+	}
 
 	return found_conn;
 }
