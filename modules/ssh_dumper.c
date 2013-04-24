@@ -27,6 +27,10 @@
 #include <pcap.h>
 #include <errno.h>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #define MAX_FILENAME 65535
 
 struct dumping_module* ssh_dumper_new()
@@ -111,12 +115,16 @@ int ssh_dumper_run(struct dumping_module* m, struct packet* p)
 		} else {
 			// we are only after TCP
 			struct ip* ip = p->ip;
-			if (ip->ip_p == IPPROTO_TCP) {
+			if (p->is_ip && ip->ip_p == IPPROTO_TCP) {
 				struct tcphdr* tcp = (struct tcphdr*)((uint8_t*)ip + (uint8_t)IP_HDR_LEN(ip));
-				unsigned char tcpDataOffset = (tcp->th_off >> 4);
-				uint16_t payload_len = ntohs(ip->ip_len) -  ((uint8_t)IP_HDR_LEN(ip) + tcpDataOffset);
+				unsigned char tcpDataOffset = (tcp->th_off * 4);
+				uint16_t payload_len = ntohs(ip->ip_len) - ((uint8_t)IP_HDR_LEN(ip) + tcpDataOffset);
+				//msg(MSG_FATAL, "%u %u %u %u", payload_len, ntohs(ip->ip_len), (uint8_t)IP_HDR_LEN(ip), tcpDataOffset);
 				if (payload_len > 0) {
-					unsigned char* payload_offset = p->data + p->ipheader_offset + tcpDataOffset;
+					//msg(MSG_FATAL, "%u",  p->ipheader_offset + (uint8_t)IP_HDR_LEN(ip) + tcpDataOffset);
+					unsigned char* payload_offset = p->data + p->ipheader_offset + tcpDataOffset + (uint8_t)IP_HDR_LEN(ip);
+					
+					//msg(MSG_FATAL, "%s %s %u %u: %c%c%c", inet_ntoa(ip->ip_src), inet_ntoa(ip->ip_dst), ntohs(tcp->th_sport), ntohs(tcp->th_dport), payload_offset[0], payload_offset[1], payload_offset[2]);
 					if (strncmp((char*)payload_offset, "SSH-", 4) == 0) {
 						msg(MSG_FATAL, "FOUND SSH string ... ");	
 						conn->ssh_dumper_data = 1;
@@ -125,14 +133,16 @@ int ssh_dumper_run(struct dumping_module* m, struct packet* p)
 					} else {
 						conn->active = 0;
 					}
-				}
+				} else {
+					//msg(MSG_FATAL, "control");
+				} 
 	 		} else {
 				// skip the rest of this connection
 				conn->active = 0;
 			}
 
 		}
-		return 0;		
+		return 0;
 		i = i->next;
 	}
 
